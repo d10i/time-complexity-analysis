@@ -1,6 +1,6 @@
-package ch.satoshi.dissertation.agent;
+package com.dariosimonetti.dissertation.agent;
 
-import ch.satoshi.dissertation.agent.tree.RootNode;
+import com.dariosimonetti.dissertation.agent.tree.RootNode;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;

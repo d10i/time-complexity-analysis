@@ -1,1 +1,1 @@
-premain-Class: ch.satoshi.dissertation.agent.MetricAgent
+premain-Class: com.dariosimonetti.dissertation.agent.MetricAgent

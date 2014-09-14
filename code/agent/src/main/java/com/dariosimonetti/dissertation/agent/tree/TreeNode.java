@@ -1,4 +1,4 @@
-package ch.satoshi.dissertation.agent.tree;
+package com.dariosimonetti.dissertation.agent.tree;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;

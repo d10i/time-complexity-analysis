@@ -1,4 +1,4 @@
-package ch.satoshi.dissertation.agent;
+package com.dariosimonetti.dissertation.agent;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
@@ -58,7 +58,7 @@ public class TimedClassTransformer implements ClassFileTransformer {
 					logger.debug("Instrumenting method " + method.getLongName());
 					method.addLocalVariable("startTime", CtClass.longType);
 					method.insertBefore("startTime = System.nanoTime();");
-					method.insertAfter("ch.satoshi.dissertation.agent.MetricReporter.reportTime(System.nanoTime() - startTime , Thread.currentThread());");
+					method.insertAfter("com.dariosimonetti.dissertation.agent.MetricReporter.reportTime(System.nanoTime() - startTime , Thread.currentThread());");
 					isClassModified = true;
 				}
 			}

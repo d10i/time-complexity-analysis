@@ -1,4 +1,4 @@
-package ch.satoshi.dissertation.agent;
+package com.dariosimonetti.dissertation.agent;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;

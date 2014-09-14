@@ -1,6 +1,6 @@
-package ch.satoshi.dissertation.agent.test;
+package com.dariosimonetti.dissertation.agent.test;
 
-import ch.satoshi.dissertation.agent.Measured;
+import com.dariosimonetti.dissertation.agent.Measured;
 
 public class Linearithmic {
     @Measured

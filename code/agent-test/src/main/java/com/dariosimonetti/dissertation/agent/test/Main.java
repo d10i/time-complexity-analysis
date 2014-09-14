@@ -1,9 +1,9 @@
-package ch.satoshi.dissertation.agent.test;
+package com.dariosimonetti.dissertation.agent.test;
 
-import ch.satoshi.dissertation.agent.Measured;
-import ch.satoshi.dissertation.agent.MetricReporter;
-import ch.satoshi.dissertation.agent.tree.Node;
-import ch.satoshi.dissertation.agent.tree.RootNode;
+import com.dariosimonetti.dissertation.agent.Measured;
+import com.dariosimonetti.dissertation.agent.MetricReporter;
+import com.dariosimonetti.dissertation.agent.tree.Node;
+import com.dariosimonetti.dissertation.agent.tree.RootNode;
 
 import java.io.File;
 import java.io.IOException;

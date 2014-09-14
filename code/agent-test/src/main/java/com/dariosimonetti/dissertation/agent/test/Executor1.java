@@ -1,8 +1,9 @@
-package ch.satoshi.dissertation.agent.test;
+package com.dariosimonetti.dissertation.agent.test;
 
-import ch.satoshi.dissertation.agent.Measured;
+import com.dariosimonetti.dissertation.agent.Measured;
 
-public class Executor2 {
+public class Executor1 {
+    private Executor2 executor2;
     private Executor3 executor3;
 
     private Quadratic quadratic;
@@ -13,7 +14,8 @@ public class Executor2 {
     private Cubic cubic;
     private Constant constant;
 
-    public Executor2() {
+    public Executor1() {
+        executor2 = new Executor2();
         executor3 = new Executor3();
 
         constant = new Constant();
@@ -27,14 +29,20 @@ public class Executor2 {
 
     @Measured
     public void execute(int n) {
-        linear.average(n * 3);
+        for(long i = 0; i < 156250000l; i++) {
 
-        logarithmic.average(n);
+        }
 
-        //exponential.quick(n);
+        constant.slow(n);
+
+        quadratic.average(n);
 
         for(int i = 0; i < n; i++) {
-            executor3.execute(n);
+            executor2.execute(n);
         }
+
+        linearithmic.average(n);
+
+        executor3.execute(1);
     }
 }
