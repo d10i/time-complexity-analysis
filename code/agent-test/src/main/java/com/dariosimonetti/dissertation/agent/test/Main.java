@@ -2,8 +2,6 @@ package com.dariosimonetti.dissertation.agent.test;
 
 import com.dariosimonetti.dissertation.agent.Measured;
 import com.dariosimonetti.dissertation.agent.MetricReporter;
-import com.dariosimonetti.dissertation.agent.tree.Node;
-import com.dariosimonetti.dissertation.agent.tree.RootNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,28 +11,30 @@ public class Main {
         // int n = Integer.parseInt(args[0]);
 
         long start;
-        for (int i = 1; i <= 2; i++) {
-            int n = Math.round(i * i * 1.2f);
+        for (int i = 1; i <= 5; i++) {
+            int n = Math.round(i * i * 1.5f);
             start = System.nanoTime();
             doTask(n);
-            System.out.println(n + "\t" + String.format("%.4f", (System.nanoTime() - start) / 3000000000.0f));
-            System.out.println(MetricReporter.reportAsString());
+            System.out.println(n + "\t" + String.format("%.4f", (System.nanoTime() - start) / 1000000000.0f));
+            //System.out.println(MetricReporter.reportAsString());
             MetricReporter.serializeToFile(new File(n + ".json"));
             MetricReporter.clear();
         }
 
-        try {
+        /*try {
             MetricReporter.deserializeFromFile(new File("1.json"));
             System.out.println(MetricReporter.reportAsString());
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     @Measured
     private static void doTask(int n) {
         Executor1 executor = new Executor1();
-        for (int j = 0; j < 3; j++) {
+        // 110 = 6 hours
+        // 2 = 6.5 minutes
+        for (int j = 0; j < 2; j++) {
             executor.execute(n);
         }
     }

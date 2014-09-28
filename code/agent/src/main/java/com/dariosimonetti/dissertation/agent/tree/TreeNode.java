@@ -1,35 +1,16 @@
 package com.dariosimonetti.dissertation.agent.tree;
 
+import com.dariosimonetti.dissertation.agent.MeasuredStackTraceElements;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-public class TreeNode extends Node {
+public class TreeNode<T extends MergeableValue> extends Node<T> {
+    @JsonProperty
+    private String name;
 
     @JsonProperty
-    private final String name;
+    private T value;
 
-    @JsonProperty
-    private long count;
-
-    @JsonProperty
-    private double total;
-
-    @JsonProperty
-    private double min;
-
-    @JsonProperty
-    private double max;
-
-    @JsonProperty
-    protected final List<TreeNode> nodes = new ArrayList<TreeNode>();
-
-    public TreeNode() {
-        this(null);
+    private TreeNode() {
     }
 
     public TreeNode(String name) {
@@ -38,14 +19,20 @@ public class TreeNode extends Node {
     }
 
     @Override
-    public void add(long elapsedTime, List<StackTraceElement> stackTraceElementsList) {
+    public Node<T> add(T value, MeasuredStackTraceElements stackTraceElementsList) {
         if (stackTraceElementsList.size() > 0) {
-            super.add(elapsedTime, stackTraceElementsList);
+            return super.add(value, stackTraceElementsList);
         } else {
-            this.count++;
-            this.total += elapsedTime;
-            this.min = Math.min(this.min, elapsedTime);
-            this.max = Math.max(this.max, elapsedTime);
+            updateValue(value);
+            return this;
+        }
+    }
+
+    private void updateValue(T value) {
+        if (this.value != null) {
+            this.value = (T) this.value.mergeWith(value);
+        } else {
+            this.value = value;
         }
     }
 
@@ -57,9 +44,6 @@ public class TreeNode extends Node {
     @Override
     public void clear() {
         this.nodes.clear();
-        this.count = 0;
-        this.total = 0;
-        this.min = Long.MAX_VALUE;
-        this.max = Long.MIN_VALUE;
+        this.value = null;
     }
 }

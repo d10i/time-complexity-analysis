@@ -1,5 +1,6 @@
 package com.dariosimonetti.dissertation.agent.tree;
 
+import com.dariosimonetti.dissertation.agent.MeasuredStackTraceElements;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,32 +9,37 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@JsonPropertyOrder({ "name", "count", "total", "min", "max", "nodes" })
-abstract public class Node {
+@JsonPropertyOrder({"name", "value", "nodes"})
+abstract public class Node<T extends MergeableValue> {
 
     @JsonProperty
-    protected final List<TreeNode> nodes = new ArrayList<TreeNode>();
+    protected final Map<String, Node<T>> nodes = new HashMap<String, Node<T>>();
+    //protected final List<Node<T>> nodes = new ArrayList<Node<T>>();
 
-    public void add(long elapsedTime, List<StackTraceElement> stackTraceElementsList) {
-        if (stackTraceElementsList.size() > 0) {
-            StackTraceElement stackTraceElement = stackTraceElementsList.get(stackTraceElementsList.size() - 1);
-            String stackTraceElementName = getStackTraceElementName(stackTraceElement);
-            boolean found = false;
-            for (Node node : nodes) {
+    public Node<T> add(T value, MeasuredStackTraceElements measuredStackTraceElements) {
+        if (measuredStackTraceElements.size() > 0) {
+            String stackTraceElementName = measuredStackTraceElements.getLastElement();
+            Node node = nodes.get(stackTraceElementName);
+            if (node != null) {
+                return node.add(value, measuredStackTraceElements.withLastElementRemoved());
+            }
+            /*for (Node node : nodes) {
                 if (node.getName().equals(stackTraceElementName)) {
-                    node.add(elapsedTime, removeLastElement(stackTraceElementsList));
-                    found = true;
+                    return node.add(value, measuredStackTraceElements.withLastElementRemoved());
                 }
-            }
+            }*/
 
-            if (!found) {
-                TreeNode newNode = new TreeNode(stackTraceElementName);
-                newNode.add(elapsedTime, removeLastElement(stackTraceElementsList));
-                nodes.add(newNode);
-            }
+            TreeNode<T> newNode = new TreeNode<T>(stackTraceElementName);
+            newNode.add(value, measuredStackTraceElements.withLastElementRemoved());
+            nodes.put(stackTraceElementName, newNode);
+            //nodes.add(newNode);
         }
+
+        return null;
     }
 
     public void serializeToFile(File file) {
@@ -61,12 +67,4 @@ abstract public class Node {
     abstract String getName();
 
     abstract public void clear();
-
-    private String getStackTraceElementName(StackTraceElement stackTraceElement) {
-        return stackTraceElement.getClassName() + "." + stackTraceElement.getMethodName();
-    }
-
-    private List removeLastElement(List list) {
-        return list.subList(0, list.size() - 1);
-    }
 }
