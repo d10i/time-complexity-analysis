@@ -12,7 +12,7 @@ public class Main {
 
         long start;
         for (int i = 1; i <= 5; i++) {
-            int n = Math.round(i * i * 1.5f);
+            int n = Math.round(i * i * 1.3f);
             start = System.nanoTime();
             doTask(n);
             System.out.println(n + "\t" + String.format("%.4f", (System.nanoTime() - start) / 1000000000.0f));

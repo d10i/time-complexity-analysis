@@ -43,7 +43,7 @@ public class TreeNode<T extends MergeableValue> extends Node<T> {
 
     @Override
     public void clear() {
-        this.nodes.clear();
+        super.clear();
         this.value = null;
     }
 }

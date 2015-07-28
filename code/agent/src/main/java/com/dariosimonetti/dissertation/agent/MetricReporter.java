@@ -1,13 +1,10 @@
 package com.dariosimonetti.dissertation.agent;
 
+import akka.actor.*;
 import com.dariosimonetti.dissertation.agent.complexityreport.ComplexityReportBuilder;
 import com.dariosimonetti.dissertation.agent.tree.Metrics;
 import com.dariosimonetti.dissertation.agent.tree.Node;
 import com.dariosimonetti.dissertation.agent.tree.TreeRoot;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,22 +18,40 @@ public class MetricReporter {
     private static long totalInvocations = 0;
     private static double totalTime = 0.0d;
 
+    private static final ActorRef service = createService();
+
+    private static TimeReportsBufferBuilder timeReportsBufferBuilder = new TimeReportsBufferBuilder();
+
+    private static ActorRef createService() {
+        final ActorSystem system = ActorSystem.create("TypedActorDemo");
+        return system.actorOf(Props.create(ServiceActor.class), "service");
+    }
+
     public static void reportTime(long elapsedTime, Thread thread) {
         long start = System.nanoTime();
         try {
-            MeasuredStackTraceElements measuredStackTraceElements = MeasuredStackTraceElements.fromThread(thread);
+            //service.tell(new TimeReport(elapsedTime, thread.getStackTrace()), ActorRef.noSender());
 
-            //tree.add(Metrics.fromElapsedTime(elapsedTime), measuredStackTraceElements);
-            Node<Metrics> node = nodesMap.get(measuredStackTraceElements);
+            timeReportsBufferBuilder.add(new TimeReport(elapsedTime, thread.getStackTrace()));
+
+            if(totalInvocations % 10 == 0) {
+                service.tell(timeReportsBufferBuilder.build(), ActorRef.noSender());
+                timeReportsBufferBuilder.newInstance();
+            }
+
+            /*MeasuredStackTraceElements measuredStackTraceElements = MeasuredStackTraceElements.fromStackTrace(thread.getStackTrace());
+
+            tree.add(Metrics.fromElapsedTime(elapsedTime), measuredStackTraceElements);*/
+            /*Node<Metrics> node = nodesMap.get(measuredStackTraceElements);
             if (node == null) {
                 node = tree.add(Metrics.fromElapsedTime(elapsedTime), measuredStackTraceElements);
                 nodesMap.put(measuredStackTraceElements, node);
             } else {
                 node.add(Metrics.fromElapsedTime(elapsedTime), MeasuredStackTraceElements.empty());
-            }
-        } catch (NotFoundException e) {
+            }*/
+        } /*catch (NotFoundException e) {
             e.printStackTrace();
-        } finally {
+        }*/ finally {
             totalInvocations++;
             totalTime += System.nanoTime() - start;
         }
@@ -59,7 +74,8 @@ public class MetricReporter {
     }
 
     public static void serializeToFile(File file) {
-        tree.serializeToFile(file);
+       tree.serializeToFile(file);
+       //service.tell(new Save(file), ActorRef.noSender());
     }
 
     public static TreeRoot deserializeFromFile(File file) throws IOException {
@@ -68,23 +84,12 @@ public class MetricReporter {
     }
 
     public static void clear() {
+        service.tell(timeReportsBufferBuilder, ActorRef.noSender());
+        timeReportsBufferBuilder.newInstance();
         System.out.println(String.format("%d invocations for a total of %.4fms, average %.4fns", totalInvocations, totalTime / 1000000.0d, totalTime / totalInvocations));
         totalInvocations = 0;
         totalTime = 0.0d;
         tree.clear();
         nodesMap.clear();
-    }
-
-    private static List<StackTraceElement> filterStackTraceElements(StackTraceElement[] stackTraceElements) throws NotFoundException {
-        List<StackTraceElement> stackTraceElementsList = new ArrayList<StackTraceElement>(stackTraceElements.length);
-        for (StackTraceElement stackTraceElement : stackTraceElements) {
-            CtClass ctClass = ClassPool.getDefault().get(stackTraceElement.getClassName());
-            CtMethod ctMethod = ctClass.getDeclaredMethod(stackTraceElement.getMethodName());
-            if (ctMethod.hasAnnotation(Measured.class)) {
-                stackTraceElementsList.add(stackTraceElement);
-            }
-        }
-
-        return stackTraceElementsList;
     }
 }

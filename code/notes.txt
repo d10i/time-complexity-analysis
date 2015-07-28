@@ -1,0 +1,1 @@
+Only works for monodimensional (n and not n+m etc.)

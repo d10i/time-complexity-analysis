@@ -66,5 +66,10 @@ abstract public class Node<T extends MergeableValue> {
 
     abstract String getName();
 
-    abstract public void clear();
+    public void clear() {
+        for(Node node : this.nodes.values()) {
+            node.clear();
+        }
+        this.nodes.clear();
+    }
 }
