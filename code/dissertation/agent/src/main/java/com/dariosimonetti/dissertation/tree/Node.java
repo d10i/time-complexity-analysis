@@ -1,4 +1,4 @@
-package com.dariosimonetti.dissertation.agent.tree;
+package com.dariosimonetti.dissertation.tree;
 
 import com.dariosimonetti.dissertation.agent.MeasuredStackTraceElements;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,9 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @JsonPropertyOrder({"name", "value", "nodes"})

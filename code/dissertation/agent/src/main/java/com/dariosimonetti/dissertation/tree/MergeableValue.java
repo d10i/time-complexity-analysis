@@ -1,4 +1,4 @@
-package com.dariosimonetti.dissertation.agent.tree;
+package com.dariosimonetti.dissertation.tree;
 
 public interface MergeableValue {
     MergeableValue mergeWith(MergeableValue mergeableValue);

@@ -1,4 +1,4 @@
-package com.dariosimonetti.dissertation.agent.tree;
+package com.dariosimonetti.dissertation.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
