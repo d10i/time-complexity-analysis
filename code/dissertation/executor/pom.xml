@@ -10,8 +10,10 @@
     <artifactId>executor</artifactId>
 
     <dependencies>
-        <groupId>com.dariosimonetti.dissertation</groupId>
-        <artifactId>agent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <dependency>
+            <groupId>com.dariosimonetti.dissertation</groupId>
+            <artifactId>agent</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

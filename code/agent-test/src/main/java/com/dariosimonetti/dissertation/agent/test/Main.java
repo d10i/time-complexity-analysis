@@ -8,9 +8,11 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
-        // int n = Integer.parseInt(args[0]);
-
-        long start;
+        int n = Integer.parseInt(args[0]);
+        System.out.println("Running agent-test with n: "+ n);
+        doTask(n);
+        
+        /*long start;
         for (int i = 1; i <= 5; i++) {
             int n = Math.round(i * i * 1.3f);
             start = System.nanoTime();
@@ -21,7 +23,7 @@ public class Main {
             MetricReporter.clear();
         }
 
-        /*try {
+        try {
             MetricReporter.deserializeFromFile(new File("1.json"));
             System.out.println(MetricReporter.reportAsString());
         } catch (IOException e) {
