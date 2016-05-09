@@ -1,2 +1,1 @@
-#!/usr/bin/env bash
-java -cp agent-test/target/agent-test-jar-with-dependencies.jar com.dariosimonetti.dissertation.agent.test.Main
+java -cp ".;agent-test/target/classes" -jar ./time-complexity-analyser/target/time-complexity-analyser-fat.jar tech.dario.dissertation.agenttest.Main

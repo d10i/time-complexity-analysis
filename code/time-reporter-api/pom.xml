@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>tech.dario.dissertation</groupId>
-    <artifactId>agent-test</artifactId>
+    <artifactId>time-reporter-api</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <build>
@@ -17,17 +17,32 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <testSource>1.8</testSource>
+                    <testTarget>1.8</testTarget>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <tasks>
+                        <echo>Removing time-reporter-api's dummy StaticTimeReporterBinder</echo>
+                        <delete dir="target/classes/tech/dario/dissertation/timereporter/impl"/>
+                    </tasks>
                 </configuration>
             </plugin>
         </plugins>
     </build>
     <dependencies>
-        <dependency>
-            <groupId>tech.dario.dissertation</groupId>
-            <artifactId>agent-annotations</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
