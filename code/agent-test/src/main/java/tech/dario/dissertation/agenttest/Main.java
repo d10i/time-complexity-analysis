@@ -8,6 +8,8 @@ public class Main {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
+  private static final Executor1 EXECUTOR = new Executor1();
+
   public static void main(String[] args) {
     int n = Integer.parseInt(args[0]);
     LOGGER.info("Running agent-test with n: {}", n);
@@ -17,11 +19,6 @@ public class Main {
 
   @Measured
   private static void doTask(int n) {
-    Executor1 executor = new Executor1();
-    // 110 = 6 hours
-    // 2 = 6.5 minutes
-    for (int j = 0; j < 2; j++) {
-      executor.execute(n);
-    }
+    EXECUTOR.execute(n);
   }
 }

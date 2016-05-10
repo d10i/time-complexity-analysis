@@ -46,6 +46,11 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
         return null;
       }
 
+      if (className.startsWith("java.") || className.startsWith("javassist.")) {
+        LOGGER.debug("Skip class {}: 'java.*' or 'javaassist.*'", className);
+        return null;
+      }
+
       declareAndInstantiateTimeReporter(className, ctClass);
 
       boolean isClassModified = instrumentMeasuredMethods(ctClass);

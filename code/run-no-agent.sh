@@ -1,1 +1,1 @@
-java -cp ".;agent-test/target/classes" -jar ./time-complexity-analyser/target/time-complexity-analyser-fat.jar tech.dario.dissertation.agenttest.Main
+/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java -jar ./time-complexity-analyser/target/time-complexity-analyser-fat.jar ./agent-test/target/agent-test-fat.jar

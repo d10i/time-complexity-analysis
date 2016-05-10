@@ -1,0 +1,15 @@
+<configuration>
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{yyyy-MM-dd'T'HH:mm:ss.SSS} %-5level %logger{50} %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="tech.dario.dissertation.agent.instrumentation.MeasuredClassTransformer" level="INFO"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>
