@@ -1,1 +1,1 @@
-- Make MetricReporter generic, similar to how SL4FJ does it for logs
+- Make MetricRecorder generic, similar to how SL4FJ does it for logs

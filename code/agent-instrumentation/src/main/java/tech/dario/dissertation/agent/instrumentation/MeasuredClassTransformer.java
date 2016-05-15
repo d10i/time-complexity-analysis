@@ -4,7 +4,6 @@ import javassist.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.dario.dissertation.agent.annotations.Measured;
-import tech.dario.dissertation.timereporter.api.TimeReporter;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
@@ -22,7 +21,7 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
     try {
       classPool.appendPathList(System.getProperty("java.class.path"));
 
-      // make sure that MetricReporter is loaded
+      // make sure that MetricRecorder is loaded
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -51,13 +50,15 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
         return null;
       }
 
-      declareAndInstantiateTimeReporter(className, ctClass);
+      declareAndInstantiateTimeRecorder(className, ctClass);
 
       boolean isClassModified = instrumentMeasuredMethods(ctClass);
 
       if (!isClassModified) {
         return null;
       }
+
+      LOGGER.info("Instrumented class {}", className);
 
       return ctClass.toBytecode();
     } catch (Exception e) {
@@ -67,12 +68,12 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
     }
   }
 
-  private void declareAndInstantiateTimeReporter(String className, CtClass ctClass) throws CannotCompileException, NotFoundException {
-    CtField timeReporterField = new CtField(classPool.get(TimeReporter.class.getName()), "_AGENT_TIME_REPORTER", ctClass);
-    timeReporterField.setModifiers(Modifier.PRIVATE);
-    timeReporterField.setModifiers(Modifier.FINAL);
-    timeReporterField.setModifiers(Modifier.STATIC);
-    ctClass.addField(timeReporterField, "tech.dario.dissertation.timereporter.api.TimeReporterFactoryUtil.getTimeReporter(" + className + ".class)");
+  private void declareAndInstantiateTimeRecorder(String className, CtClass ctClass) throws CannotCompileException, NotFoundException {
+    CtField timeRecorderField = new CtField(classPool.get("tech.dario.dissertation.timerecorder.api.TimeRecorder"), "_AGENT_TIME_RECORDER", ctClass);
+    timeRecorderField.setModifiers(Modifier.PRIVATE);
+    timeRecorderField.setModifiers(Modifier.FINAL);
+    timeRecorderField.setModifiers(Modifier.STATIC);
+    ctClass.addField(timeRecorderField, "tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil.getTimeRecorder(" + className + ".class)");
   }
 
   private boolean instrumentMeasuredMethods(CtClass ctClass) throws CannotCompileException {
@@ -87,7 +88,7 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
         LOGGER.debug("Instrumenting method " + method.getLongName());
         method.addLocalVariable("_agent_startTime", CtClass.longType);
         method.insertBefore("_agent_startTime = System.nanoTime();");
-        method.insertAfter("_AGENT_TIME_REPORTER.reportTime(System.nanoTime() - _agent_startTime, Thread.currentThread());");
+        method.insertAfter("_AGENT_TIME_RECORDER.reportTime(System.nanoTime() - _agent_startTime, Thread.currentThread());");
         isClassModified = true;
       }
     }
