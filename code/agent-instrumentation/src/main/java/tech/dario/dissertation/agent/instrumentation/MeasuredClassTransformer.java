@@ -73,10 +73,10 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
     timeRecorderField.setModifiers(Modifier.PRIVATE);
     timeRecorderField.setModifiers(Modifier.FINAL);
     timeRecorderField.setModifiers(Modifier.STATIC);
-    ctClass.addField(timeRecorderField, "tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil.getTimeRecorder(" + className + ".class)");
+    ctClass.addField(timeRecorderField, "tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil.getTimeRecorder()");
   }
 
-  private boolean instrumentMeasuredMethods(CtClass ctClass) throws CannotCompileException {
+  private boolean instrumentMeasuredMethods(CtClass ctClass) throws CannotCompileException, NotFoundException {
     boolean isClassModified = false;
     for (CtMethod method : ctClass.getDeclaredMethods()) {
       // if method is annotated, add the code to measure the time
@@ -86,9 +86,15 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
           continue;
         }
         LOGGER.debug("Instrumenting method " + method.getLongName());
+
         method.addLocalVariable("_agent_startTime", CtClass.longType);
         method.insertBefore("_agent_startTime = System.nanoTime();");
-        method.insertAfter("_AGENT_TIME_RECORDER.reportTime(System.nanoTime() - _agent_startTime, Thread.currentThread());");
+
+        method.addLocalVariable("_agent_stackTrace", classPool.get(StackTraceElement[].class.getName()));
+        method.insertBefore("_agent_stackTrace = Thread.currentThread().getStackTrace();");
+
+        method.insertAfter("_AGENT_TIME_RECORDER.reportTime(System.nanoTime() - _agent_startTime, _agent_stackTrace);");
+
         isClassModified = true;
       }
     }

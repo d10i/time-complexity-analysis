@@ -8,22 +8,29 @@ import java.util.concurrent.ConcurrentMap;
 
 public class AkkaTimeRecorderFactory implements TimeRecorderFactory {
 
-  private ConcurrentMap<String, TimeRecorder> timeRecorderMap;
+  private final TimeRecorder timeRecorder;
 
   public AkkaTimeRecorderFactory() {
-    timeRecorderMap = new ConcurrentHashMap<>();
-    AkkaTimeRecorder.init();
+    timeRecorder = new AkkaTimeRecorder();
   }
 
   @Override
-  public TimeRecorder getTimeRecorder(String name) {
-    TimeRecorder simpleTimeRecorder = timeRecorderMap.get(name);
-    if (simpleTimeRecorder != null) {
-      return simpleTimeRecorder;
-    } else {
-      TimeRecorder newInstance = new AkkaTimeRecorder(name);
-      TimeRecorder oldInstance = timeRecorderMap.putIfAbsent(name, newInstance);
-      return oldInstance == null ? newInstance : oldInstance;
-    }
+  public void start() {
+    timeRecorder.start();
+  }
+
+  @Override
+  public TimeRecorder getTimeRecorder() {
+    return timeRecorder;
+  }
+
+  @Override
+  public void stop() {
+    timeRecorder.stop();
+  }
+
+  @Override
+  public String toString() {
+    return "AkkaTimeRecorderFactory{}";
   }
 }

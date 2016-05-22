@@ -2,12 +2,20 @@ package tech.dario.dissertation.timecomplexityanalysis.sdk;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tech.dario.dissertation.agent.annotations.Measured;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.Algorithm;
+import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
+import tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil;
 
 public class TimeComplexityAnalysisSdk {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TimeComplexityAnalysisSdk.class);
+
+  private final TimeRecorderFactory timeRecorderFactory;
+
+  public TimeComplexityAnalysisSdk(TimeRecorderFactory timeRecorderFactory) {
+    this.timeRecorderFactory = timeRecorderFactory;
+    TimeRecorderFactoryUtil.setTimeRecorderFactory(timeRecorderFactory);
+  }
 
   public void analyseAlgorithm(Algorithm algorithm) {
     long start;
@@ -19,10 +27,11 @@ public class TimeComplexityAnalysisSdk {
     }
   }
 
-  @Measured
-  private void runAlgorithmWithN(Algorithm algorithm, int n) {
+  public void runAlgorithmWithN(Algorithm algorithm, int n) {
     LOGGER.info("runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
+    timeRecorderFactory.start();
     algorithm.run(n);
+    timeRecorderFactory.stop();
     LOGGER.info("Done runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
   }
 }

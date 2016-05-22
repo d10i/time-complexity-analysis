@@ -26,7 +26,7 @@
     <dependencies>
         <dependency>
             <groupId>tech.dario.dissertation</groupId>
-            <artifactId>agent-annotations</artifactId>
+            <artifactId>time-recorder-api</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
