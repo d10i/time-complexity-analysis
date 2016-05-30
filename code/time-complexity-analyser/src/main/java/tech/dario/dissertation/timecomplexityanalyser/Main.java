@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import tech.dario.dissertation.testalgorithm.TestAlgorithm;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.TimeComplexityAnalysisSdk;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.Algorithm;
-import tech.dario.dissertation.timerecorder.impl.AkkaTimeRecorderFactory;
+import tech.dario.dissertation.timerecorder.akka.AkkaTimeRecorderFactory;
 
 public class Main {
 

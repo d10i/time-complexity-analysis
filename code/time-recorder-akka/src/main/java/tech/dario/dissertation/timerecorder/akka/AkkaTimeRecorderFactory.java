@@ -1,10 +1,7 @@
-package tech.dario.dissertation.timerecorder.impl;
+package tech.dario.dissertation.timerecorder.akka;
 
 import tech.dario.dissertation.timerecorder.api.TimeRecorder;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class AkkaTimeRecorderFactory implements TimeRecorderFactory {
 

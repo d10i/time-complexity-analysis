@@ -8,6 +8,7 @@
     </appender>
 
     <logger name="tech.dario.dissertation.agent.instrumentation.MeasuredClassTransformer" level="INFO"/>
+    <logger name="akka" level="DEBUG" />
 
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
