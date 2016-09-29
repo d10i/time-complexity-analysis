@@ -24,6 +24,12 @@
         </plugins>
     </build>
     <dependencies>
+        <dependency>
+            <groupId>tech.dario.dissertation</groupId>
+            <artifactId>agent-annotations</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
