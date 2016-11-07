@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <logger name="tech.dario.dissertation.agent.instrumentation.MeasuredClassTransformer" level="INFO"/>
+    <logger name="tech.dario.dissertation.agent.instrumentation.MeasuredClassTransformer" level="DEBUG"/>
     <logger name="akka" level="DEBUG" />
 
     <root level="DEBUG">

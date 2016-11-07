@@ -20,8 +20,6 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
     classPool.appendSystemPath();
     try {
       classPool.appendPathList(System.getProperty("java.class.path"));
-
-      // make sure that MetricRecorder is loaded
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -45,8 +43,8 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
         return null;
       }
 
-      if (className.startsWith("java.") || className.startsWith("javassist.")) {
-        LOGGER.debug("Skip class {}: 'java.*' or 'javaassist.*'", className);
+      if (className.startsWith("java.") || className.startsWith("javassist.") || className.startsWith("sun.")) {
+        LOGGER.debug("Skip class {}: 'java.*', 'javaassist.*' or 'sun.*'", className);
         return null;
       }
 
