@@ -1,7 +1,7 @@
 package tech.dario.dissertation.timerecorder.akka
 
 import akka.actor.{Actor, ActorLogging}
-import tech.dario.dissertation.timerecorder.akka.tree.{MeasuredStackTraceElements, Metrics, Tree}
+import tech.dario.dissertation.timerecorder.tree.{MeasuredStackTraceElements, Metrics, Tree}
 
 import scala.collection.mutable
 
@@ -17,7 +17,7 @@ class Worker extends Actor with ActorLogging {
   override def receive = {
     case tr@TimeReport(elapsedTime, stackTrace) =>
       //log.info(s"$self: Work starts")
-      val measuredStackTraceElements: MeasuredStackTraceElements = MeasuredStackTraceElements.fromStackTrace(stackTrace)
+      val measuredStackTraceElements = MeasuredStackTraceElements.fromStackTrace(stackTrace)
       //log.info(s"$measuredStackTraceElements: $elapsedTime")
       tree.add(Metrics.fromElapsedTime(elapsedTime), measuredStackTraceElements)
     //queue += tr

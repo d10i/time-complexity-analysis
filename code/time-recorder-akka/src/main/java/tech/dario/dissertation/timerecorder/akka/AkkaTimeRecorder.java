@@ -12,8 +12,9 @@ import org.slf4j.LoggerFactory;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-import tech.dario.dissertation.timerecorder.akka.tree.Tree;
 import tech.dario.dissertation.timerecorder.api.TimeRecorder;
+import tech.dario.dissertation.timerecorder.tree.Metrics;
+import tech.dario.dissertation.timerecorder.tree.Tree;
 
 public class AkkaTimeRecorder implements TimeRecorder {
 
@@ -96,23 +97,21 @@ public class AkkaTimeRecorder implements TimeRecorder {
   }
 
   @Override
-  public void stop() {
+  public Tree<Metrics> stop() throws Exception {
     LOGGER.info("Stopping {}", this);
 
-    try {
-      Timeout timeout = new Timeout(Duration.create(60, "seconds"));
-      Future<Object> future = Patterns.ask(service, new Save(), timeout);
-      Tree tree = (Tree) Await.result(future, timeout.duration());
+    Timeout timeout = new Timeout(Duration.create(60, "seconds"));
+    Future<Object> future = Patterns.ask(service, new Save(), timeout);
+    Tree<Metrics> tree = (Tree<Metrics>) Await.result(future, timeout.duration());
 
-      LOGGER.debug(tree.toString());
+    LOGGER.debug(tree.toString());
 
-      Future<Boolean> stopped = Patterns.gracefulStop(service, timeout.duration(), new Shutdown());
-      LOGGER.debug("Awaiting actor system termination");
-      Await.result(stopped, timeout.duration());
-      LOGGER.debug("Actor system terminated");
-    } catch (Exception e) {
-      LOGGER.error("Unexpected error waiting for result", e);
-    }
+    Future<Boolean> stopped = Patterns.gracefulStop(service, timeout.duration(), new Shutdown());
+    LOGGER.debug("Awaiting actor system termination");
+    Await.result(stopped, timeout.duration());
+    LOGGER.debug("Actor system terminated");
+
+    return tree;
   }
 
   @Override

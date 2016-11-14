@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.akka.tree;
+package tech.dario.dissertation.timerecorder.tree;
 
 import java.util.HashMap;
 import java.util.Map;

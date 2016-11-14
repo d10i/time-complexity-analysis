@@ -4,7 +4,7 @@ import akka.actor._
 import akka.routing._
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import tech.dario.dissertation.timerecorder.akka.tree.{Metrics, Tree}
+import tech.dario.dissertation.timerecorder.tree.{Metrics, Tree}
 
 import scala.concurrent.duration._
 import scala.concurrent.Future

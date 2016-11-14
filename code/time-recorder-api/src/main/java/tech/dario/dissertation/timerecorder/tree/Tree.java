@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.akka.tree;
+package tech.dario.dissertation.timerecorder.tree;
 
 public class Tree<T extends MergeableValue<T>> extends Node<T> {
 

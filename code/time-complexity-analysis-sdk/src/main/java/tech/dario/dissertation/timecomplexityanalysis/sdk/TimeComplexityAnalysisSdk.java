@@ -27,17 +27,22 @@ public class TimeComplexityAnalysisSdk {
   }
 
   public void runAlgorithmWithN(Algorithm algorithm, int n) {
-    LOGGER.info("runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
-    long t0 = System.nanoTime();
-    timeRecorderFactory.start();
-    long t1 = System.nanoTime();
-    algorithm.run(n);
-    long t2 = System.nanoTime();
-    timeRecorderFactory.stop();
-    long t3 = System.nanoTime();
-    LOGGER.info("Done runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
-    LOGGER.info("Start time: {}", String.format("%.4f", (t1 - t0) / 1000000000.0f));
-    LOGGER.info("Algorithm time: {}", String.format("%.4f", (t2 - t1) / 1000000000.0f));
-    LOGGER.info("Stop time: {}", String.format("%.4f", (t3 - t2) / 1000000000.0f));
+    try {
+      LOGGER.info("runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
+      long t0 = System.nanoTime();
+      timeRecorderFactory.start();
+      long t1 = System.nanoTime();
+      algorithm.run(n);
+      long t2 = System.nanoTime();
+      timeRecorderFactory.stop();
+      long t3 = System.nanoTime();
+      LOGGER.info("Done runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
+      LOGGER.debug("Start time: {}", String.format("%.4f", (t1 - t0) / 1000000000.0f));
+      LOGGER.debug("Algorithm time: {}", String.format("%.4f", (t2 - t1) / 1000000000.0f));
+      LOGGER.debug("Stop time: {}", String.format("%.4f", (t3 - t2) / 1000000000.0f));
+    } catch(Exception e) {
+      String message = String.format("Unexpected error analysing algorithm with n %d", n);
+      LOGGER.error(message, e);
+    }
   }
 }

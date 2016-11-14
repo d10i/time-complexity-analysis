@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.akka.tree;
+package tech.dario.dissertation.timerecorder.tree;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -80,6 +80,6 @@ public class Metrics implements MergeableValue<Metrics> {
   }
 
   private String toMicroSeconds(double nanoSeconds) {
-    return DECIMAL_FORMAT.format(nanoSeconds / 100) + " μs";
+    return DECIMAL_FORMAT.format(nanoSeconds / 1000) + " μs";
   }
 }
