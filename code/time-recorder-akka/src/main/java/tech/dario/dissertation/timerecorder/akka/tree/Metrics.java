@@ -1,10 +1,24 @@
 package tech.dario.dissertation.timerecorder.akka.tree;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 public class Metrics implements MergeableValue<Metrics> {
   private long count;
   private double total;
   private double min;
   private double max;
+
+  private static final DecimalFormat DECIMAL_FORMAT;
+  static {
+    DECIMAL_FORMAT = new DecimalFormat();
+    DECIMAL_FORMAT.setMaximumFractionDigits(1);
+    DECIMAL_FORMAT.setMinimumFractionDigits(1);
+    DECIMAL_FORMAT.setGroupingSize(3);
+    DECIMAL_FORMAT.setRoundingMode(RoundingMode.HALF_UP);
+    DECIMAL_FORMAT.setDecimalSeparatorAlwaysShown(true);
+    DECIMAL_FORMAT.setGroupingUsed(true);
+  }
 
   private Metrics() {
   }
@@ -60,8 +74,12 @@ public class Metrics implements MergeableValue<Metrics> {
   @Override
   public String toString() {
     return "[count: " + count +
-            ", total: " + total +
-            ", min: " + min +
-            ", max: " + max + "]";
+            ", avg: " + toMicroSeconds(total / count) +
+            ", min: " + toMicroSeconds(min) +
+            ", max: " + toMicroSeconds(max) + "]";
+  }
+
+  private String toMicroSeconds(double nanoSeconds) {
+    return DECIMAL_FORMAT.format(nanoSeconds / 100) + " μs";
   }
 }

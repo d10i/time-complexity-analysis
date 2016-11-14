@@ -3,10 +3,16 @@ package tech.dario.dissertation.timerecorder.akka;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
+import tech.dario.dissertation.timerecorder.akka.tree.Tree;
 import tech.dario.dissertation.timerecorder.api.TimeRecorder;
 
 public class AkkaTimeRecorder implements TimeRecorder {
@@ -25,7 +31,7 @@ public class AkkaTimeRecorder implements TimeRecorder {
     Config config = ConfigFactory.parseString(
             "akka {\n" +
                     "\n" +
-                    "  version = \"2.4.6\"\n" +
+                    "  version = \"2.4.12\"\n" +
                     "\n" +
                     "  loggers = [\"akka.event.slf4j.Slf4jLogger\"]\n" +
                     "\n" +
@@ -45,13 +51,6 @@ public class AkkaTimeRecorder implements TimeRecorder {
                     "      # Throughput defines the number of messages that are processed in a batch\n" +
                     "      # before the thread is returned to the pool. Set to 1 for as fair as possible.\n" +
                     "      throughput = 10\n" +
-                    "    }\n" +
-                    "\n" +
-                    "    deployment {\n" +
-                    "      /service/router1 {\n" +
-                    "        router = smallest-mailbox-pool\n" +
-                    "        nr-of-instances = 3\n" +
-                    "      }\n" +
                     "    }\n" +
                     "\n" +
                     "    debug {\n" +
@@ -100,12 +99,20 @@ public class AkkaTimeRecorder implements TimeRecorder {
   public void stop() {
     LOGGER.info("Stopping {}", this);
 
-    service.tell(new Save(), ActorRef.noSender());
+    try {
+      Timeout timeout = new Timeout(Duration.create(60, "seconds"));
+      Future<Object> future = Patterns.ask(service, new Save(), timeout);
+      Tree tree = (Tree) Await.result(future, timeout.duration());
 
-    LOGGER.info("Awaiting actor system termination");
-    actorSystem.awaitTermination();
-    LOGGER.info("Actor system terminated");
-    LOGGER.info("Stopped {}", this);
+      LOGGER.debug(tree.toString());
+
+      Future<Boolean> stopped = Patterns.gracefulStop(service, timeout.duration(), new Shutdown());
+      LOGGER.debug("Awaiting actor system termination");
+      Await.result(stopped, timeout.duration());
+      LOGGER.debug("Actor system terminated");
+    } catch (Exception e) {
+      LOGGER.error("Unexpected error waiting for result", e);
+    }
   }
 
   @Override

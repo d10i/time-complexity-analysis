@@ -1,7 +1,5 @@
 package tech.dario.dissertation.timerecorder.akka.tree;
 
-import java.io.Serializable;
-
-public interface MergeableValue<T extends MergeableValue> extends Serializable {
+public interface MergeableValue<T extends MergeableValue> {
   T mergeWith(T mergeableValue);
 }

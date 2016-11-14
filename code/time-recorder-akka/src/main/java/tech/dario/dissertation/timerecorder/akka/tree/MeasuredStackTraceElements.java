@@ -11,7 +11,7 @@ import java.util.*;
 public class MeasuredStackTraceElements {
 
   private static Map<String, Boolean> measuredStackTraceElementNamesCache = new HashMap<>();
-  //private static ClassPool classPool = ClassPool.getDefault();
+  private static ClassPool classPool = ClassPool.getDefault();
   private final List<String> stackTraceElementNames;
   private final int hashCode;
 
@@ -43,10 +43,9 @@ public class MeasuredStackTraceElements {
   }
 
   private static boolean isMeasuredMethod(StackTraceElement stackTraceElement) throws NotFoundException {
-    return true;
-    /*CtClass ctClass = classPool.get(stackTraceElement.getClassName());
+    CtClass ctClass = classPool.get(stackTraceElement.getClassName());
     CtMethod ctMethod = ctClass.getDeclaredMethod(stackTraceElement.getMethodName());
-    return ctMethod.hasAnnotation(Measured.class);*/
+    return ctMethod.hasAnnotation(Measured.class);
   }
 
   public MeasuredStackTraceElements withLastElementRemoved() {

@@ -10,8 +10,10 @@ class PriorityMailbox(settings: ActorSystem.Settings, config: Config) extends Un
 
     case Save() => 2
 
-    // PoisonPill must be the one with lowest priority
-    case PoisonPill => 4
+    case Shutdown() => 3
 
-    case otherwise => 3
+    // PoisonPill must be the one with lowest priority
+    case PoisonPill => 5
+
+    case otherwise => 4
   })

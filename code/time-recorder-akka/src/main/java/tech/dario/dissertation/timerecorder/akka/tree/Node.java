@@ -80,7 +80,7 @@ public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>
     // Merge children
     Map<String, Node<T>> newChildren = new HashMap<>();
 
-    // Add all children that are in this node, merging them with the ones in the other nodes when they exist
+    // Add all children that are in this node, merging them with the ones in the other node when they exist
     for(Map.Entry<String, Node<T>> child: this.children.entrySet()) {
       String childName = child.getKey();
       if(otherNode.hasChild(childName)) {
