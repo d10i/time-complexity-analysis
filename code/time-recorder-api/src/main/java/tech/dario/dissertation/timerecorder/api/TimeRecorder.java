@@ -1,12 +1,11 @@
 package tech.dario.dissertation.timerecorder.api;
 
-import tech.dario.dissertation.timerecorder.tree.Metrics;
-import tech.dario.dissertation.timerecorder.tree.Tree;
+import tech.dario.dissertation.timerecorder.tree.MetricsTree;
 
 public interface TimeRecorder {
   void start();
 
   void reportTime(long elapsedTime, StackTraceElement[] stackTrace);
 
-  Tree<Metrics> stop() throws Exception;
+  MetricsTree stop() throws Exception;
 }

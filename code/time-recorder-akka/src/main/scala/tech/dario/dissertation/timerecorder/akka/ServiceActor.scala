@@ -4,7 +4,7 @@ import akka.actor._
 import akka.routing._
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
-import tech.dario.dissertation.timerecorder.tree.{Metrics, Tree}
+import tech.dario.dissertation.timerecorder.tree.MetricsTree
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -34,10 +34,10 @@ class ServiceActor extends Actor with ActorLogging {
 
     case s: Save =>
       log.debug("Received Save message")
-      val treeFutures = routees map (routee => (routee.ref ? s).mapTo[Tree[Metrics]])
+      val treeFutures = routees map (routee => (routee.ref ? s).mapTo[MetricsTree])
 
       val mergedTreeFuture = Future.reduce(treeFutures) {
-        case (t1, t2) => t1.mergeWith(t2).asInstanceOf[Tree[Metrics]]
+        case (t1, t2) => t1.mergeWith(t2).asInstanceOf[MetricsTree]
       }
 
       mergedTreeFuture.pipeTo(sender())

@@ -2,12 +2,11 @@ package tech.dario.dissertation.timerecorder.tree;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.Collection;
 
 public class Metrics implements MergeableValue<Metrics> {
-  private long count;
+  private double count;
   private double total;
-  private double min;
-  private double max;
 
   private static final DecimalFormat DECIMAL_FORMAT;
   static {
@@ -23,23 +22,27 @@ public class Metrics implements MergeableValue<Metrics> {
   private Metrics() {
   }
 
-  public Metrics(long count, double total, double min, double max) {
+  public Metrics(double count, double total) {
     this.count = count;
     this.total = total;
-    this.min = min;
-    this.max = max;
   }
 
   public static Metrics fromElapsedTime(long elapsedTime) {
-    return new Metrics(1, elapsedTime, elapsedTime, elapsedTime);
+    return new Metrics(1, elapsedTime);
+  }
+
+  public double getCount() {
+    return count;
+  }
+
+  public double getTotal() {
+    return total;
   }
 
   @Override
   public Metrics mergeWith(Metrics otherMetrics) {
     this.count += otherMetrics.count;
     this.total += otherMetrics.total;
-    this.min = Math.min(this.min, otherMetrics.min);
-    this.max = Math.max(this.max, otherMetrics.max);
     return this;
   }
 
@@ -50,10 +53,8 @@ public class Metrics implements MergeableValue<Metrics> {
 
     Metrics metrics = (Metrics) o;
 
-    if (count != metrics.count) return false;
-    if (Double.compare(metrics.total, total) != 0) return false;
-    if (Double.compare(metrics.min, min) != 0) return false;
-    return Double.compare(metrics.max, max) == 0;
+    if (Double.compare(metrics.count, count) != 0) return false;
+    return Double.compare(metrics.total, total) == 0;
 
   }
 
@@ -61,12 +62,9 @@ public class Metrics implements MergeableValue<Metrics> {
   public int hashCode() {
     int result;
     long temp;
-    result = (int) (count ^ (count >>> 32));
+    temp = Double.doubleToLongBits(count);
+    result = (int) (temp ^ (temp >>> 32));
     temp = Double.doubleToLongBits(total);
-    result = 31 * result + (int) (temp ^ (temp >>> 32));
-    temp = Double.doubleToLongBits(min);
-    result = 31 * result + (int) (temp ^ (temp >>> 32));
-    temp = Double.doubleToLongBits(max);
     result = 31 * result + (int) (temp ^ (temp >>> 32));
     return result;
   }
@@ -74,9 +72,8 @@ public class Metrics implements MergeableValue<Metrics> {
   @Override
   public String toString() {
     return "[count: " + count +
-            ", avg: " + toMicroSeconds(total / count) +
-            ", min: " + toMicroSeconds(min) +
-            ", max: " + toMicroSeconds(max) + "]";
+            ", tot: " + toMicroSeconds(total) +
+            ", avg: " + toMicroSeconds(total / count) + "]";
   }
 
   private String toMicroSeconds(double nanoSeconds) {

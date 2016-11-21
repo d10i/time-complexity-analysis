@@ -2,8 +2,7 @@ package tech.dario.dissertation.timerecorder.akka;
 
 import tech.dario.dissertation.timerecorder.api.TimeRecorder;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
-import tech.dario.dissertation.timerecorder.tree.Metrics;
-import tech.dario.dissertation.timerecorder.tree.Tree;
+import tech.dario.dissertation.timerecorder.tree.MetricsTree;
 
 public class AkkaTimeRecorderFactory implements TimeRecorderFactory {
 
@@ -24,7 +23,7 @@ public class AkkaTimeRecorderFactory implements TimeRecorderFactory {
   }
 
   @Override
-  public Tree<Metrics> stop() throws Exception {
+  public MetricsTree stop() throws Exception {
     return timeRecorder.stop();
   }
 

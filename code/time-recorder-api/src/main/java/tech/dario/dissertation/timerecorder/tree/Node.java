@@ -9,9 +9,20 @@ public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>
   private Map<String, Node<T>> children;
 
   public Node(String name) {
+    this(name, null);
+  }
+
+  public Node(String name, T data) {
     this.name = name;
-    this.data = null;
+    this.data = data;
     this.children = new HashMap<>();
+  }
+
+  public Node<T> add(String name, T data) {
+    Node<T> newNode = new Node<>(name, data);
+    children.remove(name);
+    children.put(name, newNode);
+    return newNode;
   }
 
   public void add(T data, MeasuredStackTraceElements measuredStackTraceElements) {
@@ -54,14 +65,6 @@ public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>
     return children.get(name);
   }
 
-  private void addData(final T data) {
-    if (this.data == null) {
-      this.data = data;
-    } else {
-      this.data = this.data.mergeWith(data);
-    }
-  }
-
   @Override
   public Node<T> mergeWith(Node<T> otherNode) {
     if(!this.name.equals(otherNode.getName())) {
@@ -101,6 +104,14 @@ public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>
     this.children = newChildren;
 
     return this;
+  }
+
+  private void addData(final T data) {
+    if (this.data == null) {
+      this.data = data;
+    } else {
+      this.data = this.data.mergeWith(data);
+    }
   }
 
   @Override
