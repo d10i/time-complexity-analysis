@@ -7,9 +7,6 @@ import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil;
 import tech.dario.dissertation.timerecorder.tree.MetricsTree;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class TimeComplexityAnalysisSdk {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TimeComplexityAnalysisSdk.class);
@@ -23,14 +20,14 @@ public class TimeComplexityAnalysisSdk {
 
   public void analyseAlgorithm(Algorithm algorithm) {
 
-    Map<Integer, MetricsTree> trees = new HashMap<>();
-
-    for (int i = 1; i <= 4; i++) {
-    // for (int i = 1; i <= 2; i++) {
-    // for (int i = 1; i <= 1; i++) {
-      int n = i * i * 2;
-      trees.put(n, runAlgorithmWithN(algorithm, n));
-    }
+//    Map<Integer, MetricsTree> trees = new HashMap<>();
+//
+//    for (int i = 1; i <= 4; i++) {
+//    // for (int i = 1; i <= 2; i++) {
+//    // for (int i = 1; i <= 1; i++) {
+//      int n = i * i * 2;
+//      trees.put(n, runAlgorithmWithN(algorithm, n));
+//    }
   }
 
   public MetricsTree runAlgorithmWithN(Algorithm algorithm, int n) {
