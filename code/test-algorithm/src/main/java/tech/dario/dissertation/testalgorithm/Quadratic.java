@@ -4,21 +4,21 @@ import tech.dario.dissertation.agent.annotations.Measured;
 
 public class Quadratic {
   @Measured
-  public void quick(int n) {
+  public void quick(long n) {
     for (long i = 0; i < Math.pow(n, 2) * 1562l; i++) {
 
     }
   }
 
   @Measured
-  public void average(int n) {
+  public void average(long n) {
     for (long i = 0; i < Math.pow(n, 2) * 625l; i++) {
 
     }
   }
 
   @Measured
-  public void slow(int n) {
+  public void slow(long n) {
     for (long i = 0; i < Math.pow(n, 2) * 2500l; i++) {
 
     }

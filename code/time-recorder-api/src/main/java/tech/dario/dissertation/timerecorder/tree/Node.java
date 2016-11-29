@@ -2,6 +2,7 @@ package tech.dario.dissertation.timerecorder.tree;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>> {
   private final String name;
@@ -20,14 +21,18 @@ public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>
 
   public Node<T> add(String name, T data) {
     Node<T> newNode = new Node<>(name, data);
-    children.remove(name);
-    children.put(name, newNode);
+    return add(newNode);
+  }
+
+  public Node<T> add(Node<T> newNode) {
+    children.remove(newNode.getName());
+    children.put(newNode.getName(), newNode);
     return newNode;
   }
 
   public void add(T data, MeasuredStackTraceElements measuredStackTraceElements) {
     if(measuredStackTraceElements.size() == 0) {
-      addData(data);
+      mergeData(data);
       return;
     }
 
@@ -65,20 +70,30 @@ public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>
     return children.get(name);
   }
 
+  public <S extends MergeableValue<S>> Node<S> cloneWithStrategy(Function<T, S> strategy) {
+    Node<S> newNode = new Node<>(getName(), strategy.apply(getData()));
+
+    for(Map.Entry<String, Node<T>> child: getChildren().entrySet()) {
+      Node<S> newChild = child.getValue().cloneWithStrategy(strategy);
+      newNode.add(newChild);
+    }
+
+    return newNode;
+  }
+
   @Override
   public Node<T> mergeWith(Node<T> otherNode) {
+    if(otherNode == null) {
+      return this;
+    }
+
     if(!this.name.equals(otherNode.getName())) {
       String message = String.format("Cannot merge Node '%s' with Node '%s' as names are different", this.name, otherNode.getName());
       throw new RuntimeException(message);
     }
 
     // Merge node
-    if(!this.hasData()) {
-      this.data = otherNode.getData();
-    } else if(otherNode.hasData()) {
-      this.data = this.data.mergeWith(otherNode.getData());
-    }
-
+    mergeData(otherNode.getData());
 
     // Merge children
     Map<String, Node<T>> newChildren = new HashMap<>();
@@ -106,11 +121,11 @@ public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>
     return this;
   }
 
-  private void addData(final T data) {
-    if (this.data == null) {
-      this.data = data;
-    } else {
-      this.data = this.data.mergeWith(data);
+  private void mergeData(final T otherData) {
+    if(!this.hasData()) {
+      this.data = otherData;
+    } else if(otherData != null) {
+      this.data = this.data.mergeWith(otherData);
     }
   }
 
@@ -148,7 +163,7 @@ public class Node<T extends MergeableValue<T>> implements MergeableValue<Node<T>
     }
 
     String dataString = data == null ? "null": data.toString();
-    sb.append("(").append(name).append(": ").append(dataString).append(")\n");
+    sb.append("{").append(name).append(": ").append(dataString).append("}\n");
 
     for(Node child: children.values()) {
       sb.append(child.toString(indentation + 1));

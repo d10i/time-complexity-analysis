@@ -28,7 +28,7 @@ public class Executor1 {
   }
 
   @Measured
-  public void execute(int n) {
+  public void execute(long n) {
     for (long i = 0; i < 156250000l; i++) {
 
     }
@@ -37,7 +37,7 @@ public class Executor1 {
 
     quadratic.average(n);
 
-    for (int i = 0; i < n; i++) {
+    for (long i = 0; i < n; i++) {
       executor2.execute(n);
     }
 

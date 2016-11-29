@@ -22,7 +22,7 @@ public class Executor3 {
   }
 
   @Measured
-  public void execute(int n) {
+  public void execute(long n) {
     cubic.quick(n);
   }
 }

@@ -71,9 +71,9 @@ public class Metrics implements MergeableValue<Metrics> {
 
   @Override
   public String toString() {
-    return "[count: " + count +
+    return "{count: " + count +
             ", tot: " + toMicroSeconds(total) +
-            ", avg: " + toMicroSeconds(total / count) + "]";
+            ", avg: " + toMicroSeconds(total / count) + "}";
   }
 
   private String toMicroSeconds(double nanoSeconds) {

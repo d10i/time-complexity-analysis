@@ -26,14 +26,14 @@ public class Executor2 {
   }
 
   @Measured
-  public void execute(int n) {
+  public void execute(long n) {
     linear.average(n * 3);
 
     logarithmic.average(n);
 
     //exponential.quick(n);
 
-    for (int i = 0; i < n; i++) {
+    for (long i = 0; i < n; i++) {
       executor3.execute(n);
     }
   }

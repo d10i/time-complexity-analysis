@@ -3,9 +3,16 @@ package tech.dario.dissertation.timecomplexityanalysis.sdk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.Algorithm;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.AggregatedMetrics;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.iterator.ExponentialIterator;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil;
+import tech.dario.dissertation.timerecorder.tree.Metrics;
 import tech.dario.dissertation.timerecorder.tree.MetricsTree;
+import tech.dario.dissertation.timerecorder.tree.Tree;
+
+import java.util.*;
+import java.util.function.Function;
 
 public class TimeComplexityAnalysisSdk {
 
@@ -19,18 +26,20 @@ public class TimeComplexityAnalysisSdk {
   }
 
   public void analyseAlgorithm(Algorithm algorithm) {
+    Map<Long, MetricsTree> trees = new HashMap<>();
 
-//    Map<Integer, MetricsTree> trees = new HashMap<>();
-//
-//    for (int i = 1; i <= 4; i++) {
-//    // for (int i = 1; i <= 2; i++) {
-//    // for (int i = 1; i <= 1; i++) {
-//      int n = i * i * 2;
-//      trees.put(n, runAlgorithmWithN(algorithm, n));
-//    }
+    Iterator<Long> iterator = new ExponentialIterator(5, 6);
+
+    while (iterator.hasNext()) {
+      long n = iterator.next();
+      trees.put(n, runAlgorithmWithN(algorithm, n));
+    }
+
+    Tree<AggregatedMetrics> lol = analyseTrees(trees);
+    System.out.println(lol);
   }
 
-  public MetricsTree runAlgorithmWithN(Algorithm algorithm, int n) {
+  public MetricsTree runAlgorithmWithN(Algorithm algorithm, long n) {
     try {
       LOGGER.info("runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
       long t0 = System.nanoTime();
@@ -45,11 +54,33 @@ public class TimeComplexityAnalysisSdk {
       LOGGER.debug("Algorithm time: {}", String.format("%.4f", (t2 - t1) / 1000000000.0f));
       LOGGER.debug("Stop time: {}", String.format("%.4f", (t3 - t2) / 1000000000.0f));
       return tree;
-    } catch(Exception e) {
+    } catch (Exception e) {
       String message = String.format("Unexpected error analysing algorithm with n %d", n);
       LOGGER.error(message, e);
       System.exit(1);
       return null;
     }
+  }
+
+  private Tree<AggregatedMetrics> analyseTrees(Map<Long, MetricsTree> trees) {
+    Tree<AggregatedMetrics> result = null;
+    for (Map.Entry<Long, MetricsTree> treeEntry : trees.entrySet()) {
+      final long n = treeEntry.getKey();
+      final MetricsTree metricsTree = treeEntry.getValue();
+
+      // Can't do lambda because of JDK 8 bug
+      // See: https://bugs.openjdk.java.net/browse/JDK-8145964
+      // TODO: fix with Java 9 in 2023
+      Tree<AggregatedMetrics> tmp = metricsTree.cloneWithStrategy(new Function<Metrics, AggregatedMetrics>() {
+        @Override
+        public AggregatedMetrics apply(Metrics metrics) {
+          return new AggregatedMetrics(n, metrics);
+        }
+      });
+
+      result = (Tree<AggregatedMetrics>)tmp.mergeWith(result);
+    }
+
+    return result;
   }
 }

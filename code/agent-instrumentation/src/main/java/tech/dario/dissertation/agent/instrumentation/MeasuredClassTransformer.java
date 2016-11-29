@@ -27,6 +27,10 @@ public class MeasuredClassTransformer implements ClassFileTransformer {
 
   public byte[] transform(ClassLoader loader, String fullyQualifiedClassName, Class<?> classBeingRedefined,
                           ProtectionDomain protectionDomain, byte[] classBytes) throws IllegalClassFormatException {
+    if(fullyQualifiedClassName == null) {
+      return null;
+    }
+
     String className = fullyQualifiedClassName.replace("/", ".");
 
     classPool.appendClassPath(new ByteArrayClassPath(className, classBytes));

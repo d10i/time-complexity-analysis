@@ -12,7 +12,7 @@ public class TestAlgorithmAlgorithm implements Algorithm {
   }
 
   @Override
-  public void run(int n) {
+  public void run(long n) {
     this.testAlgorithm.doTask(n);
   }
 }
