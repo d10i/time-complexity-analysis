@@ -3,7 +3,7 @@ package timerecorder.tree;
 import org.junit.Test;
 import tech.dario.dissertation.timerecorder.tree.Metrics;
 import tech.dario.dissertation.timerecorder.tree.MetricsTree;
-import tech.dario.dissertation.timerecorder.tree.Node;
+import tech.dario.dissertation.timerecorder.tree.MergeableNode;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,33 +27,33 @@ public class MetricsTreeTest {
 
     // Input tree
     MetricsTree tree = new MetricsTree();
-    Node<Metrics> node1a = tree.add("tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1));
-    Node<Metrics> node2a = node1a.add("tech.dario.dissertation.testalgorithm.Executor1.execute", new Metrics(1.0d, 67426162.0));
-    Node<Metrics> node3a = node2a.add("tech.dario.dissertation.testalgorithm.Constant.slow", new Metrics(1.0d, 45.3));
-    Node<Metrics> node3b = node2a.add("tech.dario.dissertation.testalgorithm.Quadratic.average", new Metrics(1.0d, 863.9));
-    Node<Metrics> node3c = node2a.add("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(1.0d, 12.3));
-    Node<Metrics> node4a = node3c.add("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 2.1));
-    Node<Metrics> node3d = node2a.add("tech.dario.dissertation.testalgorithm.Linearithmic.average", new Metrics(1.0d, 953.1));
-    Node<Metrics> node3e = node2a.add("tech.dario.dissertation.testalgorithm.Executor2.execute", new Metrics(32.0d, 67367148.1));
-    Node<Metrics> node4b = node3e.add("tech.dario.dissertation.testalgorithm.Linear.average", new Metrics(32.0d, 6506.8));
-    Node<Metrics> node4c = node3e.add("tech.dario.dissertation.testalgorithm.Logarithmic.average", new Metrics(32.0d, 948.6));
-    Node<Metrics> node4d = node3e.add("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(960.0d, 67295324.2));
-    Node<Metrics> node5a = node4d.add("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(960.0d, 67263777.1));
+    MergeableNode<Metrics> node1a = tree.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1)));
+    MergeableNode<Metrics> node2a = node1a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor1.execute", new Metrics(1.0d, 67426162.0)));
+    MergeableNode<Metrics> node3a = node2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Constant.slow", new Metrics(1.0d, 45.3)));
+    MergeableNode<Metrics> node3b = node2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Quadratic.average", new Metrics(1.0d, 863.9)));
+    MergeableNode<Metrics> node3c = node2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(1.0d, 12.3)));
+    MergeableNode<Metrics> node4a = node3c.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 2.1)));
+    MergeableNode<Metrics> node3d = node2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Linearithmic.average", new Metrics(1.0d, 953.1)));
+    MergeableNode<Metrics> node3e = node2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor2.execute", new Metrics(32.0d, 67367148.1)));
+    MergeableNode<Metrics> node4b = node3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Linear.average", new Metrics(32.0d, 6506.8)));
+    MergeableNode<Metrics> node4c = node3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Logarithmic.average", new Metrics(32.0d, 948.6)));
+    MergeableNode<Metrics> node4d = node3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(960.0d, 67295324.2)));
+    MergeableNode<Metrics> node5a = node4d.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(960.0d, 67263777.1)));
 
     // Expected normalised tree
     MetricsTree normalisedTree = new MetricsTree();
-    Node<Metrics> newNode1a = normalisedTree.add("tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1 - 67426162.0));
-    Node<Metrics> newNode2a = newNode1a.add("tech.dario.dissertation.testalgorithm.Executor1.execute", new Metrics(1.0d, 67426162.0 - 45.3 - 863.9 - 12.3 - 953.1 - 67367148.1));
-    Node<Metrics> newNode3a = newNode2a.add("tech.dario.dissertation.testalgorithm.Constant.slow", new Metrics(1.0d, 45.3));
-    Node<Metrics> newNode3b = newNode2a.add("tech.dario.dissertation.testalgorithm.Quadratic.average", new Metrics(1.0d, 863.9));
-    Node<Metrics> newNode3c = newNode2a.add("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(1.0d, 12.3 - 2.1));
-    Node<Metrics> newNode4a = newNode3c.add("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 2.1));
-    Node<Metrics> newNode3d = newNode2a.add("tech.dario.dissertation.testalgorithm.Linearithmic.average", new Metrics(1.0d, 953.1));
-    Node<Metrics> newNode3e = newNode2a.add("tech.dario.dissertation.testalgorithm.Executor2.execute", new Metrics(32.0d, 67367148.1 - 6506.8 - 948.6 - 67295324.2));
-    Node<Metrics> newNode4b = newNode3e.add("tech.dario.dissertation.testalgorithm.Linear.average", new Metrics(1.0d, 6506.8 / 32.0));
-    Node<Metrics> newNode4c = newNode3e.add("tech.dario.dissertation.testalgorithm.Logarithmic.average", new Metrics(1.0d, 948.6 / 32.0));
-    Node<Metrics> newNode4d = newNode3e.add("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(30.0d, (67295324.2 - 67263777.1) / 32.0));
-    Node<Metrics> newNode5a = newNode4d.add("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 67263777.1 / 960.0));
+    MergeableNode<Metrics> newNode1a = normalisedTree.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1 - 67426162.0)));
+    MergeableNode<Metrics> newNode2a = newNode1a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor1.execute", new Metrics(1.0d, 67426162.0 - 45.3 - 863.9 - 12.3 - 953.1 - 67367148.1)));
+    MergeableNode<Metrics> newNode3a = newNode2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Constant.slow", new Metrics(1.0d, 45.3)));
+    MergeableNode<Metrics> newNode3b = newNode2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Quadratic.average", new Metrics(1.0d, 863.9)));
+    MergeableNode<Metrics> newNode3c = newNode2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(1.0d, 12.3 - 2.1)));
+    MergeableNode<Metrics> newNode4a = newNode3c.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 2.1)));
+    MergeableNode<Metrics> newNode3d = newNode2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Linearithmic.average", new Metrics(1.0d, 953.1)));
+    MergeableNode<Metrics> newNode3e = newNode2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor2.execute", new Metrics(32.0d, 67367148.1 - 6506.8 - 948.6 - 67295324.2)));
+    MergeableNode<Metrics> newNode4b = newNode3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Linear.average", new Metrics(1.0d, 6506.8 / 32.0)));
+    MergeableNode<Metrics> newNode4c = newNode3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Logarithmic.average", new Metrics(1.0d, 948.6 / 32.0)));
+    MergeableNode<Metrics> newNode4d = newNode3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(30.0d, (67295324.2 - 67263777.1) / 32.0)));
+    MergeableNode<Metrics> newNode5a = newNode4d.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 67263777.1 / 960.0)));
 
     assertEquals("Expected correct normalised tree", normalisedTree, tree.normalise());
   }
