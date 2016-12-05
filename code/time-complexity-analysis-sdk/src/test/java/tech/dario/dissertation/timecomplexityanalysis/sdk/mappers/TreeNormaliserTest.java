@@ -1,15 +1,15 @@
-package timerecorder.tree;
+package tech.dario.dissertation.timecomplexityanalysis.sdk.mappers;
 
 import org.junit.Test;
-import tech.dario.dissertation.timerecorder.tree.Metrics;
-import tech.dario.dissertation.timerecorder.tree.MetricsTree;
 import tech.dario.dissertation.timerecorder.tree.MergeableNode;
+import tech.dario.dissertation.timerecorder.tree.MergeableTree;
+import tech.dario.dissertation.timerecorder.tree.Metrics;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-public class MetricsTreeTest {
+public class TreeNormaliserTest {
   @Test
-  public void normalise() throws Exception {
+  public void testApply() throws Exception {
     // Input tree
     // (root: null)
     //   (tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask: [count: 1.0, tot: 67,426,253.1 μs, avg: 67,426,253.1 μs])
@@ -26,8 +26,8 @@ public class MetricsTreeTest {
     //           (tech.dario.dissertation.testalgorithm.Cubic.quick: [count: 960.0, tot: 67,263,777.1 μs, avg: 65,687.3 μs])
 
     // Input tree
-    MetricsTree tree = new MetricsTree();
-    MergeableNode<Metrics> node1a = tree.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1)));
+    MergeableTree<Metrics> tree = new MergeableTree<>();
+    MergeableNode<Metrics> node1a = new MergeableNode<>("tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1));
     MergeableNode<Metrics> node2a = node1a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor1.execute", new Metrics(1.0d, 67426162.0)));
     MergeableNode<Metrics> node3a = node2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Constant.slow", new Metrics(1.0d, 45.3)));
     MergeableNode<Metrics> node3b = node2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Quadratic.average", new Metrics(1.0d, 863.9)));
@@ -39,10 +39,11 @@ public class MetricsTreeTest {
     MergeableNode<Metrics> node4c = node3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Logarithmic.average", new Metrics(32.0d, 948.6)));
     MergeableNode<Metrics> node4d = node3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(960.0d, 67295324.2)));
     MergeableNode<Metrics> node5a = node4d.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(960.0d, 67263777.1)));
+    tree.add(node1a);
 
     // Expected normalised tree
-    MetricsTree normalisedTree = new MetricsTree();
-    MergeableNode<Metrics> newNode1a = normalisedTree.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1 - 67426162.0)));
+    MergeableTree<Metrics> normalisedTree = new MergeableTree<>();
+    MergeableNode<Metrics> newNode1a = new MergeableNode<>("tech.dario.dissertation.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1 - 67426162.0));
     MergeableNode<Metrics> newNode2a = newNode1a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor1.execute", new Metrics(1.0d, 67426162.0 - 45.3 - 863.9 - 12.3 - 953.1 - 67367148.1)));
     MergeableNode<Metrics> newNode3a = newNode2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Constant.slow", new Metrics(1.0d, 45.3)));
     MergeableNode<Metrics> newNode3b = newNode2a.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Quadratic.average", new Metrics(1.0d, 863.9)));
@@ -54,7 +55,10 @@ public class MetricsTreeTest {
     MergeableNode<Metrics> newNode4c = newNode3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Logarithmic.average", new Metrics(1.0d, 948.6 / 32.0)));
     MergeableNode<Metrics> newNode4d = newNode3e.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Executor3.execute", new Metrics(30.0d, (67295324.2 - 67263777.1) / 32.0)));
     MergeableNode<Metrics> newNode5a = newNode4d.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 67263777.1 / 960.0)));
+    normalisedTree.add(newNode1a);
 
-    assertEquals("Expected correct normalised tree", normalisedTree, tree.normalise());
+    TreeNormaliser treeNormaliser = new TreeNormaliser();
+
+    assertEquals("Expected correct normalised tree", normalisedTree, tree.flatMap(treeNormaliser));
   }
 }

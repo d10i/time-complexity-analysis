@@ -5,14 +5,15 @@ import org.slf4j.LoggerFactory;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.Algorithm;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.AggregatedMetrics;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.iterator.ExponentialIterator;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.MetricsAggregator;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.TreeNormaliser;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil;
 import tech.dario.dissertation.timerecorder.tree.Metrics;
-import tech.dario.dissertation.timerecorder.tree.MetricsTree;
-import tech.dario.dissertation.timerecorder.tree.Tree;
+import tech.dario.dissertation.timerecorder.tree.MergeableTree;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class TimeComplexityAnalysisSdk {
 
@@ -26,7 +27,7 @@ public class TimeComplexityAnalysisSdk {
   }
 
   public void analyseAlgorithm(Algorithm algorithm) {
-    Map<Long, MetricsTree> trees = new HashMap<>();
+    Map<Long, MergeableTree<Metrics>> trees = new HashMap<>();
 
     Iterator<Long> iterator = new ExponentialIterator(5, 6);
 
@@ -35,11 +36,13 @@ public class TimeComplexityAnalysisSdk {
       trees.put(n, runAlgorithmWithN(algorithm, n));
     }
 
-    Tree<AggregatedMetrics> lol = analyseTrees(trees);
+    trees = normaliseTrees(trees);
+
+    MergeableTree<AggregatedMetrics> lol = analyseTrees(trees);
     System.out.println(lol);
   }
 
-  public MetricsTree runAlgorithmWithN(Algorithm algorithm, long n) {
+  public MergeableTree<Metrics> runAlgorithmWithN(Algorithm algorithm, long n) {
     try {
       LOGGER.info("runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
       long t0 = System.nanoTime();
@@ -47,7 +50,7 @@ public class TimeComplexityAnalysisSdk {
       long t1 = System.nanoTime();
       algorithm.run(n);
       long t2 = System.nanoTime();
-      MetricsTree tree = timeRecorderFactory.stop();
+      MergeableTree<Metrics> tree = timeRecorderFactory.stop();
       long t3 = System.nanoTime();
       LOGGER.info("Done runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
       LOGGER.debug("Start time: {}", String.format("%.4f", (t1 - t0) / 1000000000.0f));
@@ -62,23 +65,22 @@ public class TimeComplexityAnalysisSdk {
     }
   }
 
-  private Tree<AggregatedMetrics> analyseTrees(Map<Long, MetricsTree> trees) {
-    Tree<AggregatedMetrics> result = null;
-    for (Map.Entry<Long, MetricsTree> treeEntry : trees.entrySet()) {
+  private Map<Long, MergeableTree<Metrics>> normaliseTrees(Map<Long, MergeableTree<Metrics>> trees) {
+    Map<Long, MergeableTree<Metrics>> newTrees = new HashMap<>();
+    for (Map.Entry<Long, MergeableTree<Metrics>> treeEntry : trees.entrySet()) {
+      newTrees.put(treeEntry.getKey(), treeEntry.getValue().flatMap(new TreeNormaliser()));
+    }
+
+    return newTrees;
+  }
+
+  private MergeableTree<AggregatedMetrics> analyseTrees(Map<Long, MergeableTree<Metrics>> trees) {
+    MergeableTree<AggregatedMetrics> result = null;
+    for (Map.Entry<Long, MergeableTree<Metrics>> treeEntry : trees.entrySet()) {
       final long n = treeEntry.getKey();
-      final MetricsTree metricsTree = treeEntry.getValue();
+      final MergeableTree<Metrics> metricsTree = treeEntry.getValue();
 
-      // Can't do lambda because of JDK 8 bug
-      // See: https://bugs.openjdk.java.net/browse/JDK-8145964
-      // TODO: fix with Java 9 in 2023
-      Tree<AggregatedMetrics> tmp = metricsTree.cloneWithStrategy(new Function<Metrics, AggregatedMetrics>() {
-        @Override
-        public AggregatedMetrics apply(Metrics metrics) {
-          return new AggregatedMetrics(n, metrics);
-        }
-      });
-
-      result = (Tree<AggregatedMetrics>)tmp.mergeWith(result);
+      result = metricsTree.flatMap(new MetricsAggregator(n)).mergeWith(result);
     }
 
     return result;

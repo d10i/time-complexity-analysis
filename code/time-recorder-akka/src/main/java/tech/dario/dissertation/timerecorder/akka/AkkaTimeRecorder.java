@@ -13,7 +13,8 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import tech.dario.dissertation.timerecorder.api.TimeRecorder;
-import tech.dario.dissertation.timerecorder.tree.MetricsTree;
+import tech.dario.dissertation.timerecorder.tree.MergeableTree;
+import tech.dario.dissertation.timerecorder.tree.Metrics;
 
 public class AkkaTimeRecorder implements TimeRecorder {
 
@@ -96,17 +97,14 @@ public class AkkaTimeRecorder implements TimeRecorder {
   }
 
   @Override
-  public MetricsTree stop() throws Exception {
+  public MergeableTree<Metrics> stop() throws Exception {
     LOGGER.info("Stopping {}", this);
 
     Timeout timeout = new Timeout(Duration.create(60, "seconds"));
     Future<Object> future = Patterns.ask(service, new Save(), timeout);
-    MetricsTree tree = ((MetricsTree) Await.result(future, timeout.duration()));
+    MergeableTree<Metrics> tree = ((MergeableTree<Metrics>) Await.result(future, timeout.duration()));
 
     LOGGER.debug("Pre-normalisation: " + tree.toString());
-
-    tree = tree.normalise();
-    LOGGER.debug("Post-normalisation: " + tree.toString());
 
     Future<Boolean> stopped = Patterns.gracefulStop(service, timeout.duration(), new Shutdown());
     LOGGER.debug("Awaiting actor system termination");

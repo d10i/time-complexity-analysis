@@ -3,45 +3,51 @@ package tech.dario.dissertation.timerecorder.tree;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Node<S, T extends Node<S, T>> {
+abstract class AbstractNode<T, R extends AbstractNode<T, R>> {
   private final String name;
-  private S data;
-  private Map<String, T> children;
+  private R parent;
+  private T data;
+  private Map<String, R> children;
 
-  public Node(String name) {
+  protected AbstractNode(final String name) {
     this(name, null);
   }
 
-  public Node(String name, S data) {
+  protected AbstractNode(final String name, final T data) {
     this.name = name;
     this.data = data;
     this.children = new HashMap<>();
   }
 
-  public T add(T newNode) {
+  public R add(R newNode) {
+    newNode.setParent((R)this);
     children.remove(newNode.getName());
     children.put(newNode.getName(), newNode);
     return newNode;
+  }
+
+  public R getParent() {
+    return parent;
+  }
+
+  void setParent(R parent) {
+    this.parent = parent;
   }
 
   public String getName() {
     return name;
   }
 
-  public S getData() {
+  public T getData() {
     return data;
   }
 
-  protected void setData(S data) {
+  protected void setData(T data) {
     this.data = data;
   }
 
-  public Map<String, T> getChildren() {
+  public Map<String, R> getChildren() {
     return children;
-  }
-
-  protected void setChildren(Map<String, T> children) {
-    this.children = children;
   }
 
   public boolean hasData() {
@@ -52,7 +58,7 @@ public class Node<S, T extends Node<S, T>> {
     return children.containsKey(name);
   }
 
-  public T getChild(String name) {
+  public R getChild(String name) {
     return children.get(name);
   }
 
@@ -61,7 +67,7 @@ public class Node<S, T extends Node<S, T>> {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    Node<?, ?> node = (Node<?, ?>) o;
+    AbstractNode<?, ?> node = (AbstractNode<?, ?>) o;
 
     if (name != null ? !name.equals(node.name) : node.name != null) return false;
     if (data != null ? !data.equals(node.data) : node.data != null) return false;
@@ -92,7 +98,7 @@ public class Node<S, T extends Node<S, T>> {
     String dataString = data == null ? "null": data.toString();
     sb.append("{").append(name).append(": ").append(dataString).append("}\n");
 
-    for(Node child: children.values()) {
+    for(AbstractNode child: children.values()) {
       sb.append(child.toString(indentation + 1));
     }
 

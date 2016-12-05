@@ -2,15 +2,14 @@ package tech.dario.dissertation.timerecorder.tree;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
-public class MergeableNode<T extends MergeableValue<T>> extends Node<T, MergeableNode<T>> implements MergeableValue<MergeableNode<T>> {
+public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, MergeableNode<T>> implements MergeableValue<MergeableNode<T>> {
 
-  public MergeableNode(String name) {
+  public MergeableNode(final String name) {
     this(name, null);
   }
 
-  public MergeableNode(String name, T data) {
+  public MergeableNode(final String name, final T data) {
     super(name, data);
   }
 
@@ -26,19 +25,8 @@ public class MergeableNode<T extends MergeableValue<T>> extends Node<T, Mergeabl
     } else {
       MergeableNode<T> newNode = new MergeableNode<>(lastElement);
       newNode.add(data, measuredStackTraceElements.withLastElementRemoved());
-      getChildren().put(lastElement, newNode);
+      add(newNode);
     }
-  }
-
-  public <S extends MergeableValue<S>> MergeableNode<S> cloneWithStrategy(Function<T, S> strategy) {
-    MergeableNode<S> newNode = new MergeableNode<>(getName(), strategy.apply(getData()));
-
-    for(Map.Entry<String, MergeableNode<T>> child: getChildren().entrySet()) {
-      MergeableNode<S> newChild = child.getValue().cloneWithStrategy(strategy);
-      newNode.add(newChild);
-    }
-
-    return newNode;
   }
 
   @Override
@@ -52,33 +40,30 @@ public class MergeableNode<T extends MergeableValue<T>> extends Node<T, Mergeabl
       throw new RuntimeException(message);
     }
 
-    // Merge node
-    mergeData(otherNode.getData());
+    MergeableNode<T> mergedNode = new MergeableNode<>(getName(), getData());
 
-    // Merge children
-    Map<String, MergeableNode<T>> newChildren = new HashMap<>();
+    // Merge node
+    mergedNode.mergeData(otherNode.getData());
 
     // Add all children that are in this node, merging them with the ones in the other node when they exist
     for(Map.Entry<String, MergeableNode<T>> child: getChildren().entrySet()) {
       String childName = child.getKey();
       if(otherNode.hasChild(childName)) {
-        newChildren.put(childName, child.getValue().mergeWith(otherNode.getChild(childName)));
+        mergedNode.add(child.getValue().mergeWith(otherNode.getChild(childName)));
       } else {
-        newChildren.put(childName, child.getValue());
+        mergedNode.add(child.getValue());
       }
     }
 
     // Add all children that are in otherNode but not in this node
     for(Map.Entry<String, MergeableNode<T>> child: otherNode.getChildren().entrySet()) {
       String childName = child.getKey();
-      if(!newChildren.containsKey(childName)) {
-        newChildren.put(childName, child.getValue());
+      if(!mergedNode.hasChild(childName)) {
+        mergedNode.add(child.getValue());
       }
     }
 
-    setChildren(newChildren);
-
-    return this;
+    return mergedNode;
   }
 
   private void mergeData(final T otherData) {

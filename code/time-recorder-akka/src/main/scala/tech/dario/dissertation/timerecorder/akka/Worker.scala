@@ -1,14 +1,14 @@
 package tech.dario.dissertation.timerecorder.akka
 
 import akka.actor.{Actor, ActorLogging}
-import tech.dario.dissertation.timerecorder.tree.{MeasuredStackTraceElements, Metrics, MetricsTree}
+import tech.dario.dissertation.timerecorder.tree.{MeasuredStackTraceElements, MergeableTree, Metrics}
 
 import scala.collection.mutable
 
 class Worker extends Actor with ActorLogging {
 
   var queue = new mutable.Queue[TimeReport]
-  val tree = new MetricsTree
+  val tree = new MergeableTree[Metrics]
 
   override def postStop = {
     //log.info(s"$self: Worker stopped")
