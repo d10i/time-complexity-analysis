@@ -9,11 +9,11 @@ import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.MetricsAggrega
 import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.TreeNormaliser;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil;
+import tech.dario.dissertation.timerecorder.tree.MergeableNode;
 import tech.dario.dissertation.timerecorder.tree.Metrics;
 import tech.dario.dissertation.timerecorder.tree.MergeableTree;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TimeComplexityAnalysisSdk {
 
@@ -68,7 +68,7 @@ public class TimeComplexityAnalysisSdk {
   private Map<Long, MergeableTree<Metrics>> normaliseTrees(Map<Long, MergeableTree<Metrics>> trees) {
     Map<Long, MergeableTree<Metrics>> newTrees = new HashMap<>();
     for (Map.Entry<Long, MergeableTree<Metrics>> treeEntry : trees.entrySet()) {
-      newTrees.put(treeEntry.getKey(), treeEntry.getValue().flatMap(new TreeNormaliser()));
+      newTrees.put(treeEntry.getKey(), new TreeNormaliser().apply(treeEntry.getValue()));
     }
 
     return newTrees;
@@ -78,9 +78,7 @@ public class TimeComplexityAnalysisSdk {
     MergeableTree<AggregatedMetrics> result = null;
     for (Map.Entry<Long, MergeableTree<Metrics>> treeEntry : trees.entrySet()) {
       final long n = treeEntry.getKey();
-      final MergeableTree<Metrics> metricsTree = treeEntry.getValue();
-
-      result = metricsTree.flatMap(new MetricsAggregator(n)).mergeWith(result);
+      result = new MetricsAggregator(n).apply(treeEntry.getValue()).mergeWith(result);
     }
 
     return result;

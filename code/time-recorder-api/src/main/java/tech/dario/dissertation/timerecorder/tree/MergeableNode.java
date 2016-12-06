@@ -1,6 +1,5 @@
 package tech.dario.dissertation.timerecorder.tree;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, MergeableNode<T>> implements MergeableValue<MergeableNode<T>> {

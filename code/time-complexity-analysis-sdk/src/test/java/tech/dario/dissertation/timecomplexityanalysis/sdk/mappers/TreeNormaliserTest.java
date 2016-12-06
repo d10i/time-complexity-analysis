@@ -57,8 +57,6 @@ public class TreeNormaliserTest {
     MergeableNode<Metrics> newNode5a = newNode4d.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 67263777.1 / 960.0)));
     normalisedTree.add(newNode1a);
 
-    TreeNormaliser treeNormaliser = new TreeNormaliser();
-
-    assertEquals("Expected correct normalised tree", normalisedTree, tree.flatMap(treeNormaliser));
+    assertEquals("Expected correct normalised tree", normalisedTree, new TreeNormaliser().apply(tree));
   }
 }
