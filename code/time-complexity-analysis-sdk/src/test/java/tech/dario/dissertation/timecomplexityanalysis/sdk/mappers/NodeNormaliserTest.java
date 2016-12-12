@@ -7,7 +7,7 @@ import tech.dario.dissertation.timerecorder.tree.Metrics;
 
 import static org.junit.Assert.*;
 
-public class TreeNormaliserTest {
+public class NodeNormaliserTest {
   @Test
   public void testApply() throws Exception {
     // Input tree
@@ -57,6 +57,6 @@ public class TreeNormaliserTest {
     MergeableNode<Metrics> newNode5a = newNode4d.add(new MergeableNode<>("tech.dario.dissertation.testalgorithm.Cubic.quick", new Metrics(1.0d, 67263777.1 / 960.0)));
     normalisedTree.add(newNode1a);
 
-    assertEquals("Expected correct normalised tree", normalisedTree, new TreeNormaliser().apply(tree));
+    assertEquals("Expected correct normalised tree", normalisedTree, tree.map(MergeableTree::new, new NodeNormaliser()));
   }
 }

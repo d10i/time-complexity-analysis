@@ -1,35 +1,30 @@
 package tech.dario.dissertation.timerecorder.tree;
 
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.function.Function;
 
-abstract class AbstractTree<T, S extends AbstractNode<T, S>> {
+abstract class AbstractTree<T, S extends AbstractNode<T, S>, R extends AbstractTree<T, S, R>> {
 
-  public abstract void add(S newChild);
-  public abstract S getRootNode();
+  protected S rootNode;
 
-  public <T2, S2 extends AbstractNode<T2, S2>> S2 map(Function<? super S, ? extends S2> mapper) {
-    Queue<NodesPair<T, S, T2, S2>> queue = new LinkedList<>();
+  protected AbstractTree(S rootNode) {
+    this.rootNode = rootNode;
+  }
 
-    S2 newRootNode = mapper.apply(getRootNode());
+  public <T2, S2 extends AbstractNode<T2, S2>, R2 extends AbstractTree<T2, S2, R2>> R2 map(Function<? super S2, ? extends R2> treeCreator, Function<? super S, ? extends S2> nodeMapper) {
+    final S2 newRootNote = rootNode.map(nodeMapper);
+    return treeCreator.apply(newRootNote);
+  }
 
-    queue.add(new NodesPair<>(getRootNode(), newRootNode));
+  public void add(S newChild) {
+    rootNode.add(newChild);
+  }
 
-    while (!queue.isEmpty()) {
-      final NodesPair<T, S, T2, S2> nodes = queue.remove();
+  public S getRootNode() {
+    return rootNode;
+  }
 
-      final S node = nodes.getNode1();
-      final S2 newNode = nodes.getNode2();
-
-      for (S childNode : node.getChildren().values()) {
-        S2 newChildNode = mapper.apply(childNode);
-        newNode.add(newChildNode);
-        queue.add(new NodesPair<>(childNode, newChildNode));
-      }
-    }
-
-    return newRootNode;
+  protected void setRootNode(S rootNode) {
+    this.rootNode = rootNode;
   }
 
   @Override

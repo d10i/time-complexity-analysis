@@ -1,13 +1,16 @@
 package tech.dario.dissertation.timerecorder.tree;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
+import java.util.function.Function;
 
-abstract class AbstractNode<T, R extends AbstractNode<T, R>> {
+abstract class AbstractNode<T, S extends AbstractNode<T, S>> {
   private final String name;
-  private R parent;
+  private S parent;
   private T data;
-  private Map<String, R> children;
+  private Map<String, S> children;
 
   protected AbstractNode(final String name) {
     this(name, null);
@@ -19,18 +22,41 @@ abstract class AbstractNode<T, R extends AbstractNode<T, R>> {
     this.children = new HashMap<>();
   }
 
-  public R add(R newNode) {
-    newNode.setParent((R)this);
+  public S add(S newNode) {
+    newNode.setParent((S)this);
     children.remove(newNode.getName());
     children.put(newNode.getName(), newNode);
     return newNode;
   }
 
-  public R getParent() {
+  public <T2, S2 extends AbstractNode<T2, S2>> S2 map(Function<? super S, ? extends S2> mapper) {
+    Queue<NodesPair<T, S, T2, S2>> queue = new LinkedList<>();
+
+    S2 newRootNode = mapper.apply((S)this);
+
+    queue.add(new NodesPair<>((S)this, newRootNode));
+
+    while (!queue.isEmpty()) {
+      final NodesPair<T, S, T2, S2> nodes = queue.remove();
+
+      final S node = nodes.getNode1();
+      final S2 newNode = nodes.getNode2();
+
+      for (S childNode : node.getChildren().values()) {
+        S2 newChildNode = mapper.apply(childNode);
+        newNode.add(newChildNode);
+        queue.add(new NodesPair<>(childNode, newChildNode));
+      }
+    }
+
+    return newRootNode;
+  }
+
+  public S getParent() {
     return parent;
   }
 
-  void setParent(R parent) {
+  void setParent(S parent) {
     this.parent = parent;
   }
 
@@ -46,7 +72,7 @@ abstract class AbstractNode<T, R extends AbstractNode<T, R>> {
     this.data = data;
   }
 
-  public Map<String, R> getChildren() {
+  public Map<String, S> getChildren() {
     return children;
   }
 
@@ -58,7 +84,7 @@ abstract class AbstractNode<T, R extends AbstractNode<T, R>> {
     return children.containsKey(name);
   }
 
-  public R getChild(String name) {
+  public S getChild(String name) {
     return children.get(name);
   }
 

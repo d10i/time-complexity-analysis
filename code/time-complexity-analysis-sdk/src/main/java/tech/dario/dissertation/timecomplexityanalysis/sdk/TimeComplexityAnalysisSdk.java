@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.Algorithm;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.AggregatedMetrics;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.iterator.ExponentialIterator;
-import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.MetricsAggregator;
-import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.TreeNormaliser;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.NodeAggregator;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.NodeNormaliser;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil;
 import tech.dario.dissertation.timerecorder.tree.MergeableNode;
@@ -14,6 +14,7 @@ import tech.dario.dissertation.timerecorder.tree.Metrics;
 import tech.dario.dissertation.timerecorder.tree.MergeableTree;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class TimeComplexityAnalysisSdk {
 
@@ -66,19 +67,39 @@ public class TimeComplexityAnalysisSdk {
   }
 
   private Map<Long, MergeableTree<Metrics>> normaliseTrees(Map<Long, MergeableTree<Metrics>> trees) {
+    // Can't do lambda because of JDK 8 bug
+    // See: https://bugs.openjdk.java.net/browse/JDK-8145964
+    // TODO: fix with Java 9 in 2023
+    Function<MergeableNode<Metrics>, MergeableTree<Metrics>> treeCreator = new Function<MergeableNode<Metrics>, MergeableTree<Metrics>>() {
+      @Override
+      public MergeableTree<Metrics> apply(MergeableNode<Metrics> newRootNode) {
+        return new MergeableTree(newRootNode);
+      }
+    };
+
     Map<Long, MergeableTree<Metrics>> newTrees = new HashMap<>();
     for (Map.Entry<Long, MergeableTree<Metrics>> treeEntry : trees.entrySet()) {
-      newTrees.put(treeEntry.getKey(), new TreeNormaliser().apply(treeEntry.getValue()));
+      newTrees.put(treeEntry.getKey(), treeEntry.getValue().map(treeCreator, new NodeNormaliser()));
     }
 
     return newTrees;
   }
 
   private MergeableTree<AggregatedMetrics> analyseTrees(Map<Long, MergeableTree<Metrics>> trees) {
+    // Can't do lambda because of JDK 8 bug
+    // See: https://bugs.openjdk.java.net/browse/JDK-8145964
+    // TODO: fix with Java 9 in 2023
+    Function<MergeableNode<AggregatedMetrics>, MergeableTree<AggregatedMetrics>> treeCreator = new Function<MergeableNode<AggregatedMetrics>, MergeableTree<AggregatedMetrics>>() {
+      @Override
+      public MergeableTree<AggregatedMetrics> apply(MergeableNode<AggregatedMetrics> newRootNode) {
+        return new MergeableTree(newRootNode);
+      }
+    };
+
     MergeableTree<AggregatedMetrics> result = null;
     for (Map.Entry<Long, MergeableTree<Metrics>> treeEntry : trees.entrySet()) {
       final long n = treeEntry.getKey();
-      result = new MetricsAggregator(n).apply(treeEntry.getValue()).mergeWith(result);
+      result = treeEntry.getValue().map(treeCreator, new NodeAggregator(n)).mergeWith(result);
     }
 
     return result;
