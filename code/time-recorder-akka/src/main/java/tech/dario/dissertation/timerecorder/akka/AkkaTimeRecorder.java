@@ -32,7 +32,7 @@ public class AkkaTimeRecorder implements TimeRecorder {
     Config config = ConfigFactory.parseString(
             "akka {\n" +
                     "\n" +
-                    "  version = \"2.4.12\"\n" +
+                    "  version = \"2.4.14\"\n" +
                     "\n" +
                     "  loggers = [\"akka.event.slf4j.Slf4jLogger\"]\n" +
                     "\n" +

@@ -3,11 +3,11 @@ package tech.dario.dissertation.timecomplexityanalysis.sdk.fitting;
 import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
+import org.apache.commons.math3.linear.RealVector;
 
 import java.util.Collection;
 
 public final class ConstantFunctionFinder extends FittingFunctionFinder {
-
   public ConstantFunctionFinder() {
     super(new Parametric(), new double[]{0.0d});
   }
@@ -16,14 +16,23 @@ public final class ConstantFunctionFinder extends FittingFunctionFinder {
   public FittingFunction findFittingFunction(Collection<WeightedObservedPoint> points) {
     LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
     double[] params = optimum.getPoint().toArray();
-    return new Function(params[0], optimum.getRMS());
+    return new ConstantFunction(params[0], optimum.getRMS());
   }
 
-  private class Function implements FittingFunction {
+  @Override
+  public RealVector validate(RealVector realVector) {
+    // Constraints:
+    // a >= 0
+    double a = Math.max(realVector.getEntry(0), 0.0d);
+    realVector.setEntry(0, a);
+    return realVector;
+  }
+
+  private class ConstantFunction implements FittingFunction {
     private final double a;
     private final double rms;
 
-    private Function(double a, double rms) {
+    private ConstantFunction(double a, double rms) {
       this.a = a;
       this.rms = rms;
     }
@@ -39,8 +48,8 @@ public final class ConstantFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
-    public String getStringRepresentation() {
-      return String.format("%.3f [rms: %.3f]", a, rms);
+    public String toString() {
+      return String.format("%.6f [rms: %.6f]", a, rms);
     }
   }
 

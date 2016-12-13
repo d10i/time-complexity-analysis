@@ -2,7 +2,7 @@ package tech.dario.dissertation.timerecorder.tree;
 
 import java.util.function.Function;
 
-abstract class AbstractTree<T, S extends AbstractNode<T, S>, R extends AbstractTree<T, S, R>> {
+public abstract class AbstractTree<T, S extends AbstractNode<T, S>, R extends AbstractTree<T, S, R>> {
 
   protected S rootNode;
 

@@ -6,15 +6,16 @@ import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresBuilder;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresProblem;
+import org.apache.commons.math3.fitting.leastsquares.ParameterValidator;
 import org.apache.commons.math3.linear.DiagonalMatrix;
 
 import java.util.Collection;
 
-abstract class FittingFunctionFinder {
+public abstract class FittingFunctionFinder implements ParameterValidator {
   private final CustomCurveFitter customCurveFitter;
 
   protected FittingFunctionFinder(ParametricUnivariateFunction function, double[] initialGuess) {
-    this.customCurveFitter = new CustomCurveFitter(function, initialGuess);
+    this.customCurveFitter = new CustomCurveFitter(function, initialGuess, this);
   }
 
   public abstract FittingFunction findFittingFunction(Collection<WeightedObservedPoint> points);
@@ -26,10 +27,12 @@ abstract class FittingFunctionFinder {
   private class CustomCurveFitter extends AbstractCurveFitter {
     private final ParametricUnivariateFunction function;
     private final double[] initialGuess;
+    private final ParameterValidator parameterValidator;
 
-    public CustomCurveFitter(ParametricUnivariateFunction function, double[] initialGuess) {
+    public CustomCurveFitter(ParametricUnivariateFunction function, double[] initialGuess, ParameterValidator parameterValidator) {
       this.function = function;
       this.initialGuess = initialGuess;
+      this.parameterValidator = parameterValidator;
     }
 
     @Override
@@ -64,6 +67,7 @@ abstract class FittingFunctionFinder {
               target(target).
               weight(new DiagonalMatrix(weights)).
               model(model.getModelFunction(), model.getModelFunctionJacobian()).
+              parameterValidator(parameterValidator).
               build();
     }
   }

@@ -6,7 +6,7 @@ public class SimpleTree<T> extends AbstractTree<T, SimpleNode<T>, SimpleTree<T>>
     this(new SimpleNode<>("root", null));
   }
 
-  private SimpleTree(SimpleNode<T> rootNode) {
+  public SimpleTree(SimpleNode<T> rootNode) {
     super(rootNode);
   }
 }

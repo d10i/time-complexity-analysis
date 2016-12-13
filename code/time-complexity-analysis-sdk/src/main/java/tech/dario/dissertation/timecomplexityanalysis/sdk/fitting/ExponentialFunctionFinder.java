@@ -3,6 +3,7 @@ package tech.dario.dissertation.timecomplexityanalysis.sdk.fitting;
 import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
+import org.apache.commons.math3.linear.RealVector;
 
 import java.util.Collection;
 
@@ -16,17 +17,34 @@ public final class ExponentialFunctionFinder extends FittingFunctionFinder {
   public FittingFunction findFittingFunction(Collection<WeightedObservedPoint> points) {
     LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
     double[] params = optimum.getPoint().toArray();
-    return new Function(params[0], params[1], params[2], params[3], optimum.getRMS());
+    return new ExponentialFunction(params[0], params[1], params[2], params[3], optimum.getRMS());
   }
 
-  private class Function implements FittingFunction {
+  @Override
+  public RealVector validate(RealVector realVector) {
+    // Constraints:
+    // a > 1
+    // b > 0
+    // a^(b+c)+d >= 0
+    double a = Math.max(realVector.getEntry(0), 1.0d + Double.MIN_VALUE);
+    double b = Math.max(realVector.getEntry(1), 0.0d + Double.MIN_VALUE);
+    double c = realVector.getEntry(2);
+    double d = Math.max(realVector.getEntry(3), -Math.pow(a, b + c));
+    realVector.setEntry(0, a);
+    realVector.setEntry(1, b);
+    realVector.setEntry(2, c);
+    realVector.setEntry(3, d);
+    return realVector;
+  }
+
+  private class ExponentialFunction implements FittingFunction {
     private final double a;
     private final double b;
     private final double c;
     private final double d;
     private final double rms;
 
-    public Function(double a, double b, double c, double d, double rms) {
+    public ExponentialFunction(double a, double b, double c, double d, double rms) {
       this.a = a;
       this.b = b;
       this.c = c;
@@ -45,8 +63,8 @@ public final class ExponentialFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
-    public String getStringRepresentation() {
-      return String.format("%.3f ^ (n * %.3f + %.3f) + %.3f [rms: %.3f]", a, b, c, d, rms);
+    public String toString() {
+      return String.format("%.6f ^ (n * %.6f + %.6f) + %.6f [rms: %.6f]", a, b, c, d, rms);
     }
   }
 

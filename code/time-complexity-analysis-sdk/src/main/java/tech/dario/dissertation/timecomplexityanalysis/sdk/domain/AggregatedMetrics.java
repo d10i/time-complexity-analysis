@@ -22,7 +22,7 @@ public class AggregatedMetrics implements MergeableValue<AggregatedMetrics> {
     return this;
   }
 
-  private Map<Long, Metrics> getAggregatedData() {
+  public Map<Long, Metrics> getAggregatedData() {
     return aggregatedData;
   }
 

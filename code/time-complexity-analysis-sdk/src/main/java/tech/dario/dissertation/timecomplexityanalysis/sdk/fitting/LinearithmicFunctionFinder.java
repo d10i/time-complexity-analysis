@@ -3,6 +3,7 @@ package tech.dario.dissertation.timecomplexityanalysis.sdk.fitting;
 import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
+import org.apache.commons.math3.linear.RealVector;
 
 import java.util.Collection;
 
@@ -16,15 +17,27 @@ public final class LinearithmicFunctionFinder extends FittingFunctionFinder {
   public FittingFunction findFittingFunction(Collection<WeightedObservedPoint> points) {
     LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
     double[] params = optimum.getPoint().toArray();
-    return new Function(params[0], params[1], optimum.getRMS());
+    return new LinearithmicFunction(params[0], params[1], optimum.getRMS());
   }
 
-  private class Function implements FittingFunction {
+  @Override
+  public RealVector validate(RealVector realVector) {
+    // Constraints:
+    // a > 0
+    // a + b >= 0
+    double a = Math.max(realVector.getEntry(0), 0.0d + Double.MIN_VALUE);
+    double b = Math.max(realVector.getEntry(1), -a);
+    realVector.setEntry(0, a);
+    realVector.setEntry(1, b);
+    return realVector;
+  }
+
+  private class LinearithmicFunction implements FittingFunction {
     private final double a;
     private final double b;
     private final double rms;
 
-    private Function(double a, double b, double rms) {
+    private LinearithmicFunction(double a, double b, double rms) {
       this.a = a;
       this.b = b;
       this.rms = rms;
@@ -41,8 +54,8 @@ public final class LinearithmicFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
-    public String getStringRepresentation() {
-      return String.format("%.3f * n * ln(n) + %.3f [rms: %.3f]", a, b, rms);
+    public String toString() {
+      return String.format("%.6f * n * ln(n) + %.6f [rms: %.6f]", a, b, rms);
     }
   }
 

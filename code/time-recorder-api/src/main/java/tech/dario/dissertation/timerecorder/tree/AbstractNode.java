@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.function.Function;
 
-abstract class AbstractNode<T, S extends AbstractNode<T, S>> {
+public abstract class AbstractNode<T, S extends AbstractNode<T, S>> {
   private final String name;
   private S parent;
   private T data;

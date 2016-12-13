@@ -22,7 +22,7 @@ public class QuadraticFunctionFinderTest {
     assertEquals("Expected correct point 4", f(10.0d), fittingFunction.f(10.0d), 0.0001d);
     assertEquals("Expected correct point 5", f(50.0d), fittingFunction.f(50.0d), 0.0001d);
     assertEquals("Expected correct RMS", 0.000d, fittingFunction.getRms(), 0.0001d);
-    assertEquals("Expected correct string representation", "4.000 * n^2 + 5.000 * n + 7.000 [rms: 0.000]", fittingFunction.getStringRepresentation());
+    assertEquals("Expected correct string representation", "4.000000 * n^2 + 5.000000 * n + 7.000000 [rms: 0.000000]", fittingFunction.toString());
   }
 
   private double f(double n) {

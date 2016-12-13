@@ -11,7 +11,19 @@ import java.util.*;
 public class MeasuredStackTraceElements {
 
   private static Map<String, Boolean> measuredStackTraceElementNamesCache = new HashMap<>();
-  private static ClassPool classPool = ClassPool.getDefault();
+  private static ClassPool classPool = getClassPool();
+
+  private static ClassPool getClassPool() {
+    ClassPool classPool = ClassPool.getDefault();
+    classPool.appendSystemPath();
+    try {
+      classPool.appendPathList(System.getProperty("java.class.path"));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    return classPool;
+  }
+
   private final List<String> stackTraceElementNames;
   private final int hashCode;
 
