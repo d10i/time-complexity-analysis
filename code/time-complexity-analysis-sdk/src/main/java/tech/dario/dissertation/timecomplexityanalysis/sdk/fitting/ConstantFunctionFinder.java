@@ -4,19 +4,30 @@ import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
 import org.apache.commons.math3.linear.RealVector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public final class ConstantFunctionFinder extends FittingFunctionFinder {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConstantFunctionFinder.class);
+
   public ConstantFunctionFinder() {
     super(new Parametric(), new double[]{0.0d});
   }
 
   @Override
-  public FittingFunction findFittingFunction(Collection<WeightedObservedPoint> points) {
-    LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
-    double[] params = optimum.getPoint().toArray();
-    return new ConstantFunction(params[0], optimum.getRMS());
+  public Optional<FittingFunction> findFittingFunction(Collection<WeightedObservedPoint> points) {
+    try {
+      LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
+      double[] params = optimum.getPoint().toArray();
+      return Optional.of(new ConstantFunction(params[0], optimum.getRMS()));
+    } catch(Exception e) {
+      LOGGER.warn("Unable to find fitting constant function", e);
+      return Optional.empty();
+    }
   }
 
   @Override

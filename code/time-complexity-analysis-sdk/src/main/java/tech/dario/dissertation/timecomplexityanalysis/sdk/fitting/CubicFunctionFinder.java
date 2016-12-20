@@ -4,20 +4,30 @@ import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
 import org.apache.commons.math3.linear.RealVector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public final class CubicFunctionFinder extends FittingFunctionFinder {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(CubicFunctionFinder.class);
 
   public CubicFunctionFinder() {
     super(new Parametric(), new double[]{1.0d, 1.0d, 1.0d, 0.0d});
   }
 
   @Override
-  public FittingFunction findFittingFunction(Collection<WeightedObservedPoint> points) {
-    LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
-    double[] params = optimum.getPoint().toArray();
-    return new CubicFunction(params[0], params[1], params[2], params[3], optimum.getRMS());
+  public Optional<FittingFunction> findFittingFunction(Collection<WeightedObservedPoint> points) {
+    try {
+      LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
+      double[] params = optimum.getPoint().toArray();
+      return Optional.of(new CubicFunction(params[0], params[1], params[2], params[3], optimum.getRMS()));
+    } catch (Exception e) {
+      LOGGER.warn("Unable to find fitting cubic function", e);
+      return Optional.empty();
+    }
   }
 
   @Override

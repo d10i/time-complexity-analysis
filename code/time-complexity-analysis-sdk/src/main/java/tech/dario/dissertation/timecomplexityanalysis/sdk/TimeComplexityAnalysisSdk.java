@@ -4,11 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.Algorithm;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.AggregatedMetrics;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.DefaultProbe;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.Probe;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.fitting.FittingFunction;
-import tech.dario.dissertation.timecomplexityanalysis.sdk.iterator.ExponentialIterator;
-import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.NodeAggregator;
-import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.NodeAnalyser;
-import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.NodeNormaliser;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.Asd;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.MetricsListNodeAggregator;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.AggregatedMetricsNodeAnalyser;
+import tech.dario.dissertation.timecomplexityanalysis.sdk.mappers.MetricsNodeNormaliser;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactory;
 import tech.dario.dissertation.timerecorder.api.TimeRecorderFactoryUtil;
 import tech.dario.dissertation.timerecorder.tree.*;
@@ -27,24 +29,54 @@ public class TimeComplexityAnalysisSdk {
   }
 
   public void analyseAlgorithm(Algorithm algorithm) {
-    Map<Long, MergeableTree<Metrics>> trees = new HashMap<>();
+    analyseAlgorithm(algorithm, new DefaultProbe());
+  }
 
-    Iterator<Long> iterator = new ExponentialIterator(14, 14);
+  public void analyseAlgorithm(Algorithm algorithm, Probe probe) {
 
-    while (iterator.hasNext()) {
-      long n = iterator.next();
-      trees.put(n, runAlgorithmWithN(algorithm, n));
-    }
+    runWarmUpRounds(algorithm, probe);
 
-    trees = normaliseTrees(trees);
+    Map<Long, MergeableTree<MetricsList>> trees = runRecordingRounds(algorithm, probe);
 
-    MergeableTree<AggregatedMetrics> lol = aggregateTrees(trees);
+    MergeableTree<AggregatedMetrics> lol = aggregateTrees(trees, probe);
     System.out.println(lol);
-    SimpleTree<FittingFunction> asd = analyseTree(lol);
+    SimpleTree<FittingFunction> asd = lol.map(SimpleTree::new, new AggregatedMetricsNodeAnalyser<>());
     System.out.println(asd);
   }
 
-  public MergeableTree<Metrics> runAlgorithmWithN(Algorithm algorithm, long n) {
+  private void runWarmUpRounds(Algorithm algorithm, Probe probe) {
+    for(int i = 0; i < probe.getNumWarmUpRounds(); i++) {
+      final Iterator<Long> iterator = probe.buildNIterator();
+      while (iterator.hasNext()) {
+        long n = iterator.next();
+        runAlgorithmWithN(algorithm, n);
+      }
+    }
+  }
+
+  private Map<Long, MergeableTree<MetricsList>> runRecordingRounds(Algorithm algorithm, Probe probe) {
+    Map<Long, MergeableTree<MetricsList>> trees = new HashMap<>();
+    for(int i = 0; i < probe.getNumRecordingRounds(); i++) {
+      final Iterator<Long> iterator = probe.buildNIterator();
+      while (iterator.hasNext()) {
+        final long n = iterator.next();
+
+        final MergeableTree<Metrics> metricsTree = runAlgorithmWithN(algorithm, n);
+        final MergeableTree<Metrics> normalisedMetricsTree = metricsTree.map(MergeableTree::new, new MetricsNodeNormaliser<>());
+        final MergeableTree<MetricsList> metricsListTree = normalisedMetricsTree.map(MergeableTree::new, new Asd<>());
+
+        if(trees.containsKey(n)) {
+          trees.put(n, trees.get(n).mergeWith(metricsListTree));
+        } else {
+          trees.put(n, metricsListTree);
+        }
+      }
+    }
+
+    return trees;
+  }
+
+  private MergeableTree<Metrics> runAlgorithmWithN(Algorithm algorithm, long n) {
     try {
       LOGGER.info("runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
       long t0 = System.nanoTime();
@@ -67,26 +99,13 @@ public class TimeComplexityAnalysisSdk {
     }
   }
 
-  private Map<Long, MergeableTree<Metrics>> normaliseTrees(Map<Long, MergeableTree<Metrics>> trees) {
-    Map<Long, MergeableTree<Metrics>> newTrees = new HashMap<>();
-    for (Map.Entry<Long, MergeableTree<Metrics>> treeEntry : trees.entrySet()) {
-      newTrees.put(treeEntry.getKey(), treeEntry.getValue().map(MergeableTree::new, new NodeNormaliser<>()));
-    }
-
-    return newTrees;
-  }
-
-  private MergeableTree<AggregatedMetrics> aggregateTrees(Map<Long, MergeableTree<Metrics>> trees) {
+  private MergeableTree<AggregatedMetrics> aggregateTrees(Map<Long, MergeableTree<MetricsList>> trees, Probe probe) {
     MergeableTree<AggregatedMetrics> result = null;
-    for (Map.Entry<Long, MergeableTree<Metrics>> treeEntry : trees.entrySet()) {
+    for (Map.Entry<Long, MergeableTree<MetricsList>> treeEntry : trees.entrySet()) {
       final long n = treeEntry.getKey();
-      result = treeEntry.getValue().map(MergeableTree::new, new NodeAggregator<>(n)).mergeWith(result);
+      result = treeEntry.getValue().map(MergeableTree::new, new MetricsListNodeAggregator<>(n, probe)).mergeWith(result);
     }
 
     return result;
-  }
-
-  private SimpleTree<FittingFunction> analyseTree(MergeableTree<AggregatedMetrics> tree) {
-    return tree.map(SimpleTree::new, new NodeAnalyser<>());
   }
 }

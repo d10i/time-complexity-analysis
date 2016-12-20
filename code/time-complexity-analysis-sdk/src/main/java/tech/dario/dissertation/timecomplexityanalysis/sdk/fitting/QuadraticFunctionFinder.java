@@ -4,20 +4,30 @@ import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
 import org.apache.commons.math3.linear.RealVector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public final class QuadraticFunctionFinder extends FittingFunctionFinder {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(QuadraticFunctionFinder.class);
 
   public QuadraticFunctionFinder() {
     super(new Parametric(), new double[]{1.0d, 1.0d, 0.0d});
   }
 
   @Override
-  public FittingFunction findFittingFunction(Collection<WeightedObservedPoint> points) {
-    LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
-    double[] params = optimum.getPoint().toArray();
-    return new QuadraticFunction(params[0], params[1], params[2], optimum.getRMS());
+  public Optional<FittingFunction> findFittingFunction(Collection<WeightedObservedPoint> points) {
+    try {
+      LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
+      double[] params = optimum.getPoint().toArray();
+      return Optional.of(new QuadraticFunction(params[0], params[1], params[2], optimum.getRMS()));
+    } catch (Exception e) {
+      LOGGER.warn("Unable to find fitting quadratic function", e);
+      return Optional.empty();
+    }
   }
 
   @Override

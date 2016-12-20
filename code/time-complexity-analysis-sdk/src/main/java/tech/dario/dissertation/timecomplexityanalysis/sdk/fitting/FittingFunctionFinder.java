@@ -10,6 +10,7 @@ import org.apache.commons.math3.fitting.leastsquares.ParameterValidator;
 import org.apache.commons.math3.linear.DiagonalMatrix;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public abstract class FittingFunctionFinder implements ParameterValidator {
   private final CustomCurveFitter customCurveFitter;
@@ -18,7 +19,7 @@ public abstract class FittingFunctionFinder implements ParameterValidator {
     this.customCurveFitter = new CustomCurveFitter(function, initialGuess, this);
   }
 
-  public abstract FittingFunction findFittingFunction(Collection<WeightedObservedPoint> points);
+  public abstract Optional<FittingFunction> findFittingFunction(Collection<WeightedObservedPoint> points);
 
   protected LeastSquaresOptimizer.Optimum getOptimum(Collection<WeightedObservedPoint> points) {
     return customCurveFitter.getOptimizer().optimize(customCurveFitter.getProblem(points));

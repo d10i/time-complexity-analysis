@@ -6,7 +6,7 @@ import tech.dario.dissertation.timerecorder.tree.Metrics;
 
 import java.util.function.Function;
 
-public class NodeNormaliser<T extends AbstractNode<Metrics, T>> implements Function<T, MergeableNode<Metrics>> {
+public class MetricsNodeNormaliser<T extends AbstractNode<Metrics, T>> implements Function<T, MergeableNode<Metrics>> {
   @Override
   public MergeableNode<Metrics> apply(T node) {
     if (node.getData() == null) {

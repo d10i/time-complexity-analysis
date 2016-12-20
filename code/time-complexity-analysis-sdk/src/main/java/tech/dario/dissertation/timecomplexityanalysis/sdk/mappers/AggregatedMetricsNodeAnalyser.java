@@ -8,7 +8,6 @@ import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.general.Series;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import tech.dario.dissertation.timecomplexityanalysis.sdk.domain.AggregatedMetrics;
@@ -27,7 +26,7 @@ import java.util.function.Function;
 
 import static java.awt.Color.*;
 
-public class NodeAnalyser<T extends AbstractNode<AggregatedMetrics, T>> implements Function<T, SimpleNode<FittingFunction>> {
+public class AggregatedMetricsNodeAnalyser<T extends AbstractNode<AggregatedMetrics, T>> implements Function<T, SimpleNode<FittingFunction>> {
   private final static List<FittingFunctionFinder> FITTING_FUNCTION_FINDER_LIST = new ArrayList<>() {{
     add(new ConstantFunctionFinder());
     add(new CubicFunctionFinder());
@@ -48,31 +47,36 @@ public class NodeAnalyser<T extends AbstractNode<AggregatedMetrics, T>> implemen
 
     System.out.println("---");
 
-    long maxN = 14L;
+    long maxN = 1100L;
     double maxT = Double.NEGATIVE_INFINITY;
 
     double bestRms = Double.POSITIVE_INFINITY;
     FittingFunction bestFittingFunction = null;
     XYSeriesCollection dataset = new XYSeriesCollection();
     for (FittingFunctionFinder fittingFunctionFinder : FITTING_FUNCTION_FINDER_LIST) {
-      FittingFunction currentFittingFunction = fittingFunctionFinder.findFittingFunction(observedPoints);
+      Optional<FittingFunction> currentFittingFunctionOptional = fittingFunctionFinder.findFittingFunction(observedPoints);
 
-      XYSeries currentSeries = new XYSeries(currentFittingFunction.getClass().getSimpleName());
-      for (double n = 0L; n < maxN; n += maxN / 200.0d) {
-        double t = currentFittingFunction.f(n);
-        if(t > maxT) {
-          maxT = t;
+      if(currentFittingFunctionOptional.isPresent()) {
+        FittingFunction currentFittingFunction = currentFittingFunctionOptional.get();
+        XYSeries currentSeries = new XYSeries(currentFittingFunction.getClass().getSimpleName());
+        for (double n = 0L; n < maxN; n += maxN / 200.0d) {
+          double t = currentFittingFunction.f(n);
+          if (t > maxT) {
+            maxT = t;
+          }
+
+          currentSeries.add(n, t);
         }
+        dataset.addSeries(currentSeries);
 
-        currentSeries.add(n, t);
+        if (currentFittingFunction.getRms() < bestRms) {
+          bestRms = currentFittingFunction.getRms();
+          bestFittingFunction = currentFittingFunction;
+        }
+        System.out.println(currentFittingFunction);
+      } else {
+        System.out.println("N/A");
       }
-      dataset.addSeries(currentSeries);
-
-      if (currentFittingFunction.getRms() < bestRms) {
-        bestRms = currentFittingFunction.getRms();
-        bestFittingFunction = currentFittingFunction;
-      }
-      System.out.println(currentFittingFunction);
     }
 
     XYSeries currentSeries = new XYSeries("Actual");

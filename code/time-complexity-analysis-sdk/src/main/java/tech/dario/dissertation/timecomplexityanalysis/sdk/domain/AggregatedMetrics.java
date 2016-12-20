@@ -27,6 +27,22 @@ public class AggregatedMetrics implements MergeableValue<AggregatedMetrics> {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    AggregatedMetrics that = (AggregatedMetrics) o;
+
+    return aggregatedData != null ? aggregatedData.equals(that.aggregatedData) : that.aggregatedData == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    return aggregatedData != null ? aggregatedData.hashCode() : 0;
+  }
+
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{");

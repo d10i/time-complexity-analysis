@@ -1,18 +1,20 @@
-package tech.dario.dissertation.timecomplexityanalysis.sdk.iterator;
+package tech.dario.dissertation.timecomplexityanalysis.sdk.domain.iterator;
 
 import java.util.Iterator;
 
-public class ExponentialIterator implements Iterator<Long> {
+public class LinearIterator implements Iterator<Long> {
   private final int numIterations;
   private final int maxN;
   private int i;
-  private final double base;
+  private final double a;
+  private final double b;
 
-  public ExponentialIterator(int numIterations, int maxN) {
+  public LinearIterator(int numIterations, int maxN) {
     this.numIterations = numIterations;
     this.maxN = maxN;
     this.i = 0;
-    this.base = Math.pow(Math.E, Math.log(maxN) / (numIterations - 1.0d));
+    this.a = (maxN - 1.0d) / (numIterations - 1.0d);
+    this.b = 1.0d;
   }
 
   @Override
@@ -26,6 +28,6 @@ public class ExponentialIterator implements Iterator<Long> {
       return null;
     }
 
-    return Math.min(maxN, Math.round(Math.pow(base, i++)));
+    return Math.round((a * i++) + b);
   }
 }

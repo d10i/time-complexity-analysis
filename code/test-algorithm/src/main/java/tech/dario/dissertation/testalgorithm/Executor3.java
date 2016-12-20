@@ -23,6 +23,6 @@ public class Executor3 {
 
   @Measured
   public void execute(long n) {
-    cubic.quick(n);
+    cubic.quick(Math.round(n / 40.d));
   }
 }
