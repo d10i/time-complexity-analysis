@@ -1,0 +1,57 @@
+\chapter{Requirements analysis}
+
+This chapter aims to determine the software requirements, so that these can be used for the design and consequently the implementation of the software.
+
+\noindent The software can be divided into two different concerns: profiling and analysis. The profiling part is responsible for the measuring of time spent in each instrumented method. The analysis part takes the data measured by the profiler and works out the time complexity of the algorithm under test. These two concerns have very different types of requirements, mainly because the former runs at the same time as the tested algorithm, while the latter doesn't.
+
+\section{Profiling}
+
+\subsection{Limited observer effect impact}
+As the profiler runs together with the algorithm under test, extra care needs to be taken in order to not be affected by the observer effect \cite{MSH08}. Because they are sharing the same CPU it is not possible to avoid the observer effect, but several things can be done in order to limit its impact as well as measuring it.
+
+\subsection{Manual methods selection}
+Often there are methods that are called very frequently and are very quick (e.g. getters and setters) and for this reason there needs to be a way of specifying which methods should be profiled and which ones shouldn't.
+
+\noindent It should also allow to profile 3rd party code as it is sometimes useful to see when a lot of time is spent in a library that there is no control over, so that it can be potentially be swapped out for a different or a custom-built one. This will also allow to profile and analyse code that is part of the Java SDK, such as sorting and searching algorithms.
+
+\noindent Method selection should be possible via Java annotations in the algorithm under test as well as by specifying whitelists and blacklists of methods' fully qualified names.
+
+\subsection{Storage}
+The profiler needs to be able to handle and store a vast number of measurements without running out of memory and space on disk.
+
+
+TODO: add more?
+
+\section{Analysis}
+
+\subsection{Custom test}
+As the software doesn't perform any static analysis of the algorithm under test, it does not know how to make sure to test all the edge cases. Moreover it doesn't know whether the edge cases are an important factor for the user who is analysing the algorithm (end user). \noindent For example, when measuring a sorting algorithm it might be important for the end user to know how well it performs under specific circumstances such as when the list is already ordered or ordered in decreasing order; it might be completely irrelevant too.
+
+\noindent For these reasons, the test that is run by the profiler for each \emph{n} must be defined by the end user.
+
+\subsection{Configuration}
+It needs to be possible to easily change the analysis configuration in order to find the right balance between speed and accuracy:
+\begin{itemize}
+  \item \textbf{Max \emph{n}}: maximum value of \emph{n} to test the algorithm with
+  \item \textbf{Number of samples per round}: number of samples to collect between $n = 1$ and $n = maxN$
+  \item \textbf{Samples distribution}: how to distribute the samples in each round (linearly or exponentially).
+  \item \textbf{Number of rounds per \emph{n}}: number of times to test the algorithm for each \emph{n}N
+  \item \textbf{Number of warmup rounds per \emph{n}}: number of times to run the algorithm without measuring for each \emph{n}
+  \item \textbf{Number of max outliers to exclude}: maximum number of out outliers to remove for each \emph{n}
+\end{itemize}
+
+
+\subsection{Supported curves}
+Because the software analyses the methods in isolation, it only needs to fit the measured data to one of the basic "primitives" (TODO: is this really a requirement?):
+\begin{itemize}
+  \item Constant ($f(n) = a$)
+  \item Linear ($f(n) = a \cdot n + b$)
+  \item Quadratic ($f(n) = a \cdot n^2 + b \cdot n + c$)
+  \item Cubic ($f(n) = a \cdot n^3 + b \cdot n^2 + c \cdot n + d$)
+  \item Logarithmic ($f(n) = a \cdot log(n) + b$)
+  \item Linearithmic ($f(n) = a \cdot n \cdot log(n) + b$)
+  \item Exponential ($f(n) = a \cdot e^{(n \cdot b)} + c$)
+\end{itemize}
+
+
+TODO: add more?

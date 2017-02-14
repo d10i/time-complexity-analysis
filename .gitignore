@@ -16,3 +16,10 @@ dist
 .project
 /RUNNING_PID
 nbactions.xml
+**/*.bak
+**/*.aux
+**/*.log
+**/*.dvi
+**/*.pdf
+**/*.gz
+**/*.toc

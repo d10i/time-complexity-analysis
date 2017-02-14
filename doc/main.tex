@@ -1,0 +1,43 @@
+\documentclass[a4paper,12pt]{report}
+
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[pagestyles]{titlesec}
+
+\newpagestyle{mystyle}{
+  \sethead{\chaptertitle}{}{}
+  \setfoot{}{\thepage}{}}
+\pagestyle{mystyle}
+
+ 
+\setlength{\parindent}{1em}
+\setlength{\parskip}{1em}
+\graphicspath{ {images/} }
+
+\pagenumbering{roman}
+
+\begin{document}
+
+% Front matter
+\include{cover}
+\include{abstract}
+\include{declaration}
+\include{table-of-contents}
+
+\pagenumbering{arabic} % Switch to normal numbers
+
+% Main matter
+\include{introduction}
+\include{requirements-analysis}
+\include{design}
+\include{implementation}
+\include{conclusion}
+
+% Back matter
+\include{bibliography}
+\include{appendices}
+
+\end{document}
