@@ -1,1 +1,0 @@
-premain-Class: tech.dario.dissertation.agent.instrumentation.MetricAgent
