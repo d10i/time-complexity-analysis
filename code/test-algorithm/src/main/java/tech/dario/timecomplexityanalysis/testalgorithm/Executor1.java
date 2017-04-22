@@ -1,6 +1,4 @@
-package tech.dario.dissertation.testalgorithm;
-
-import tech.dario.dissertation.agent.annotations.Measured;
+package tech.dario.timecomplexityanalysis.testalgorithm;
 
 public class Executor1 {
   private Executor2 executor2;
@@ -27,7 +25,6 @@ public class Executor1 {
     quadratic = new Quadratic();
   }
 
-  @Measured
   public void execute(long n) {
     for (long i = 0; i < 156250000l; i++) {
 
@@ -37,7 +34,8 @@ public class Executor1 {
 
     quadratic.average(n);
 
-    for (long i = 0; i < n; i++) {
+    long v = n / 20;
+    for (long i = 0; i < v; i++) {
       executor2.execute(n);
     }
 

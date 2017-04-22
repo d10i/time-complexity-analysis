@@ -1,8 +1,8 @@
-package tech.dario.dissertation.testalgorithm;
+package tech.dario.timecomplexityanalysis.testalgorithm;
 
-import tech.dario.dissertation.agent.annotations.Measured;
+public class Executor2 {
+  private Executor3 executor3;
 
-public class Executor3 {
   private Quadratic quadratic;
   private Logarithmic logarithmic;
   private Linearithmic linearithmic;
@@ -11,7 +11,9 @@ public class Executor3 {
   private Cubic cubic;
   private Constant constant;
 
-  public Executor3() {
+  public Executor2() {
+    executor3 = new Executor3();
+
     constant = new Constant();
     cubic = new Cubic();
     exponential = new Exponential();
@@ -21,8 +23,15 @@ public class Executor3 {
     quadratic = new Quadratic();
   }
 
-  @Measured
   public void execute(long n) {
-    cubic.quick(Math.round(n / 40.d));
+    linear.quick(n * 3);
+
+    logarithmic.quick(n);
+
+    exponential.quick(n);
+
+    for (long i = 0; i < n; i++) {
+      executor3.execute(n);
+    }
   }
 }
