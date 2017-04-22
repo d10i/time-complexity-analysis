@@ -1,6 +1,173 @@
 \chapter{Design}
 
-\section{Profiler}
-TODO
+TODO: intro
 
-% Against observation thing: highly concurrent, several measurements with outliers removal & average, warmup rounds
+\section{Overview}
+The software will take a dynamic approach to determine the time complexity of the algorithm under test. The algorithm will be run with inputs of different size $n$, while at the same time recording how long is spent in each measured method and how many times each measured method is called.
+
+\noindent Only the methods the end user thinks are relevant are measured and for each one of them their time complexity is calculated. The principle behind this is that measuring the time complexity method by method is more accurate than measuring the whole algorithm's while also not increasing the time needed for the dynamic analysis. It's then trivial to work out the time complexity of the whole algorithm based on the time complexity of the measured methods that compose it.
+
+
+\noindent The algorithm under test will be run for several rounds and with different $n$'s. For the context of this dissertation, a round is one execution of the algorithm with a given known input, e.g. if the algorithm under test sorts a list, a round would be sorting a specific list of known length $n$.
+
+\noindent In order to ensure low coupling and high cohesion \cite{EYC79}, the software will be divided in different modules, each one with a different responsibility. Classes within each module will honour the same principles. This will bring several advantages:
+\begin{itemize}
+  \item \textbf{Encouraged refactoring}: modules and classes can be refactored and optimised without impacting the rest of the code. This will encourage perfecting the code to keep it clean and maintainable
+  \item \textbf{Increased reusability}: as each module and class is built to only do one job well (Single Responsibility Principle \cite{RCM03}), it is easy to reuse it for different applications
+  \item \textbf{Improved robustness}: when the cohesion is high the code complexity is much lower, making it much easier to test
+  \item \textbf{Reduced code duplication}: instead of defining logic more than once it is coded once and used several time across the product (Don't Repeat Yourself \cite{AHT99}). Any changes in the logic would only have to be implemented in one single place
+\end{itemize}
+
+\noindent Figure \ref{fig:modules} shows an overview of the modules and the dependencies within them. The next chapters describe the modules shown in the diagram.
+
+\tikzset{
+  state/.style={
+    rectangle,
+    rounded corners,
+    draw=black,
+    minimum height=2em,
+    inner sep=1pt,
+    text centered,
+  },
+}
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[->,>=stealth', rotate=90, transform shape]
+    % FIRST LAYER
+    \node[state] (TIME_COMPLEXITY_ANALYSER) 
+    {
+      \begin{tabular}{l}
+        Time complexity analyser 
+      \end{tabular}
+    };
+              
+    % SECOND LAYER
+    \node[state,
+      node distance=5.0em,
+    below of=TIME_COMPLEXITY_ANALYSER] (TIME_COMPLEXITY_ANALYSIS_SDK) 
+    {
+      \begin{tabular}{l}
+        Time complexity analysis SDK 
+      \end{tabular}
+    };
+              
+    \node[state,
+      node distance=14.0em,
+      left of=TIME_COMPLEXITY_ANALYSIS_SDK,
+    xshift=-2.0em] (TIME_RECORDER_IMPL) 
+    {
+      \begin{tabular}{l}
+        Time recorder implementation 
+      \end{tabular}
+    };
+              
+    \node[state,
+      node distance=14.0em,
+    right of=TIME_COMPLEXITY_ANALYSIS_SDK] (TEST_ALGORITHM) 
+    {
+      \begin{tabular}{l}
+        Algorithm under test 
+      \end{tabular}
+    };
+              
+    % THIRD LAYER
+    \node[state,
+      node distance=5.0em,
+      below of=TIME_RECORDER_IMPL,
+    xshift=-2.2em] (AGENT) 
+    {
+      \begin{tabular}{l}
+        Agent 
+      \end{tabular}
+    };
+            
+    \node[state,
+      node distance=5.0em,
+      below of=TIME_RECORDER_IMPL,
+    xshift=+8.0em] (TIME_RECORDER_API) 
+    {
+      \begin{tabular}{l}
+        Time recorder API 
+      \end{tabular}
+    };
+              
+    % FOURTH LAYER
+    \node[state,
+      node distance=5.0em,
+    below of=TIME_RECORDER_API] (ANNOTATIONS) 
+    {
+      \begin{tabular}{l}
+        Annotations 
+      \end{tabular}
+    };
+            
+    % LINES
+    \path 
+    (TIME_COMPLEXITY_ANALYSER) edge (TIME_RECORDER_IMPL)
+    (TIME_COMPLEXITY_ANALYSER) edge (TIME_COMPLEXITY_ANALYSIS_SDK)
+    (TIME_COMPLEXITY_ANALYSER) edge (TEST_ALGORITHM)
+    (TIME_RECORDER_IMPL) edge (TIME_RECORDER_API)
+    (TIME_COMPLEXITY_ANALYSIS_SDK) edge (TIME_RECORDER_API)
+    (TEST_ALGORITHM) edge (ANNOTATIONS)
+    (TIME_RECORDER_API) edge (ANNOTATIONS)
+    (AGENT) edge (ANNOTATIONS)
+    ;
+  \end{tikzpicture}
+  \caption{Modules overview}
+  \label{fig:modules}
+\end{figure}
+
+\section{Annotations}
+This module doesn't contain any implementation, only Java annotations. A Java annotation is a special syntax used to associate metadata to packages, classes, methods, parameters and variables. They can be read and interpreted by the compiler at compile time or by an agent at runtime. These annotations are used to inform the agent (see next section) about what methods to instrument and measure.
+
+
+\section{Agent}
+This module contains the logic to instrument the algorithm under test. First the agent will detect which methods need to be instrumented based on annotations, whitelists and blacklists. Secondly the agent will instrument each of these methods by measuring the time passed during the method execution. This number will then be passed to the time recorder implementation (see next sections) which will take care of storing it for later processing.
+
+\noindent The built agent is a JAR\footnote{https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jarGuide.html} file which will need to be attached to the system by passing \code{-javaagent:jarpath[=options]}\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/package-summary.html} on the command-line, where \code{jarpath} is the path to the agent JAR while \code{options} are the options, such as whitelists and blacklists. This will instrument the algorithm under test at runtime when the instrumented methods are used for the first time.
+
+
+\section{Time recorder API}
+This module defines the API needed for time recording. The API will need to provide the interface for three different features:
+\begin{itemize}
+  \item \textbf{Start}: used by the system just before the algorithm's time complexity is about to be measured. This will reset any existing data in the time recorder implementation and start a fresh new recording
+  \item \textbf{Report time}: used by the agent when an instrumented has just finished running to inform the time recorder implementation about how long it took. The implementation will take care of storing this information for later processing
+  \item \textbf{Stop}: used by the system just after the algorithm is done running. This will shut down the time recorder implementation and return all the recorded data
+\end{itemize}
+
+\noindent The recorded data is returned in form of a graph, specifically a tree. Each node in the tree corresponds to a method or more specifically a call stack only containing methods that are measured. This way if a measured method is called twice by two different measured methods (directly or not), that method will appear twice in the tree as the corresponding call stack is different. Call graphs \cite{GKM00} do a similar thing, but each method only appears at most once in the whole graph, meaning it's not always a tree. Dealing with trees instead of more generic graphs makes the implementation much easier.
+
+\noindent Each node in the tree also has an associated measurement. For the context of this dissertation, a measurement consists of how long is spent in a method and how many times the method is called.
+
+\noindent Defining an API for time recording will keep the interface separated from the implementation so that the whole system works without needing to know the inner workings of the time recorder implementation. This allows easily swapping and comparing different implementations, which will be very useful in order to fine-tune them. On top of that developers can easily attempt building their own implementation in order to improve the existing one or to fine tune it for their specific use case. Because the implementation is probably the most delicate part of the whole system (as it needs to be accurate while ensuring a limited observer effect), being able to change the implementation should be an easy task.
+
+\section{Time recorder implementation}
+This module implements the time recorder API described in the previous section. The implementation needs to ensure that the act of recording doesn't have an impact on the actual measurement of the algorithm under test (i.e. limited observer effect). Time recording is purposely kept separate from the time complexity analysis as the former is run together with the algorithm under test while the latter isn't. In order to limit the observer effect is then essential to keep the CPU load as low as possible while the algorithm under test is running. 
+
+\noindent This implementation is only responsible for storing the measured data for later retrieval and processing, which is something that doesn't put a big workload on the CPU. Had the time complexity be analysised as the algorithm under test was running, the measured time complexity would likely be far less accurate as the analysis is computationally expensive (see next sections).
+
+\section{Time complexity analysis SDK}
+This module is responsible for analysing the data captured by the time recorder. It does so in 7 different steps:
+\begin{enumerate}
+  \item \textbf{Warm-up}: run some rounds and ignore the recorded data. This will instrument all the methods that need to be measured, which will make the algorithm under test run slightly slower. The end user will be able to choose how many warm-up rounds to have (could be zero)
+  \item \textbf{Record}: run the recording rounds. The rounds are run with different $n$ and each will produce a call graph measured by the time recorder. The end user will be able to choose what $n$'s to use and how many rounds for each $n$
+  \item \textbf{Aggregate}: for each $n$ there are now several call graphs. The aggregation will, for each $n$, take the set of call graphs and transform it into one single call graph, where each node in it contains the associated set of measurements
+  \item \textbf{Clean up}: there are now several measurements in each node in each call graph, some of which are far from the average for that node (outliers) and can be removed. The remaining measurements in each node are averaged together so that there is only one value per node in each call graph. The end user will be able to choose the upper limit of how many outliers to exclude (could be zero)
+  \item \textbf{Normalise}: each node in the call graph now contains information about how many times it has been called and how many time has been spent inside that method. Because of the simple nature of the time recorder, each node is affected by other nodes in the same branch. The number of times it has been called is affected by the number of times its parent has been called while the time spent inside the method is affected by the time spent in its children too. The normalisation process takes the call graph in raw format (see figure TODO) and ensures that each node only contains data related to that specific node (see figure TODO)
+  \item \textbf{Curve fitting}: there is now a normalised call graph for each $n$
+        with one measurement per node. For each node in a call graph, the same node could be found in another call graph that is associated to a different $n$, simply by following the same path in the graphs. Curve fitting is the act of find a curve that best approximates the relationship between these nodes across different call graphs, i.e. a function $f(n)$ that takes $n$ as input and returns the measurement as output. This function accurately describes the time complexity of the corresponding method
+  \item \textbf{Calculate time complexity}: there is now one single call graph with a function $f(n)$ per node approximating the measurement of the corresponding method as a function of $n$. The time complexity can be calculated, describing the whole algorithm as a function of $n$ by simply navigating through the graph (see figure TODO)
+\end{enumerate}
+
+\noindent Once the time complexity function is determined, accurately calculating how long the algorithm would take to run given an input size $n$ can be done in constant time as it's a simple calculation.
+
+\noindent Being an SDK, this module provides the tools for performing the analysis of an algorithm but won't do any of the above until correctly configured. For this reason this module has  has no dependency on the time recorder implementation and instead the code is done against the time recorder API. The time recorder implementation will be supplied at runtime and the whole wiring will be done by the time complexity analyser module (see next sections). Also it has no dependency on the algorithm under test and instead defines an interface describing an algorithm, which the algorithm under test will implement at runtime (see next chapter).
+
+\noindent The SDK parameters specified above allow the end user to tweak the analysis to favour accuracy over speed and vice versa. The more rounds are run and the more accurate the time complexity will be and the slower it will be to calculate it.
+
+\section{Algorithm under test}
+This is the algorithm that is under test and that will be analysed. It can have a dependency on the annotations module, in case it wants to specify what methods to measure by using the provided annotations.
+
+\section{Time complexity analyser}
+This module puts everything together. It takes the time recording implementation and the algorithm under test and then uses the time complexity analysis SDK to calculate the algorithm's time complexity. This is where the end user can tweak the analysis by changing what SDK parameters and what time recorder implementation to use (and with what parameters, if there are any).

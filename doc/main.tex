@@ -6,18 +6,28 @@
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage[pagestyles]{titlesec}
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage[section]{placeins}
+\usepackage{listings}
+
+\usetikzlibrary{arrows,automata}
+\usetikzlibrary{positioning}
 
 \newpagestyle{mystyle}{
   \sethead{\chaptertitle}{}{}
   \setfoot{}{\thepage}{}}
 \pagestyle{mystyle}
-
  
 \setlength{\parindent}{1em}
 \setlength{\parskip}{1em}
 \graphicspath{ {images/} }
 
 \pagenumbering{roman}
+
+\def\code#1{\texttt{#1}}
+
+\lstset{language=Java,basicstyle=\small}
 
 \begin{document}
 
