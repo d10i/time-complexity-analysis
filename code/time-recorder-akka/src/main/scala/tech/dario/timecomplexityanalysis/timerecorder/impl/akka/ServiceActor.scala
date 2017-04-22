@@ -1,17 +1,17 @@
-package tech.dario.dissertation.timerecorder.akka
+package tech.dario.timecomplexityanalysis.timerecorder.impl.akka
 
 import akka.actor._
-import akka.routing._
 import akka.pattern.{ask, pipe}
+import akka.routing._
 import akka.util.Timeout
-import tech.dario.dissertation.timerecorder.tree.{MergeableTree, Metrics}
+import tech.dario.timecomplexityanalysis.timerecorder.tree.{MergeableTree, Metrics}
 
-import scala.concurrent.duration._
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class ServiceActor extends Actor with ActorLogging {
-  private final val NumRoutees = 3
+  private final val NumRoutees = 3 // TODO: num cores - 1
   private final implicit val SaveTimeout = Timeout(60 seconds)
 
   private val routees = Vector.fill(NumRoutees) {

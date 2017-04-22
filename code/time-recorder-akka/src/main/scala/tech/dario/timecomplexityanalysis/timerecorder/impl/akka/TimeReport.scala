@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.akka
+package tech.dario.timecomplexityanalysis.timerecorder.impl.akka
 
 class TimeReportsBufferBuilder() {
   private var buffer: List[TimeReport] = List.empty

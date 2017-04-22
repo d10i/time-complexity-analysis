@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.akka
+package tech.dario.timecomplexityanalysis.timerecorder.impl.akka
 
 import akka.actor.{ActorSystem, PoisonPill}
 import akka.dispatch.{PriorityGenerator, UnboundedPriorityMailbox}

@@ -1,7 +1,7 @@
-package tech.dario.dissertation.timerecorder.akka
+package tech.dario.timecomplexityanalysis.timerecorder.impl.akka
 
 import akka.actor.{Actor, ActorLogging}
-import tech.dario.dissertation.timerecorder.tree.{MeasuredStackTraceElements, MergeableTree, Metrics}
+import tech.dario.timecomplexityanalysis.timerecorder.tree.{MeasuredStackTraceElements, MergeableTree, Metrics}
 
 import scala.collection.mutable
 
