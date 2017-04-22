@@ -4,9 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>tech.dario.dissertation</groupId>
+    <groupId>tech.dario.timecomplexityanalysis</groupId>
     <artifactId>time-complexity-analyser</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <build>
         <finalName>time-complexity-analyser</finalName>
@@ -14,18 +18,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.1</version>
                 <configuration>
-                    <source>9</source>
-                    <target>9</target>
-                    <testSource>9</testSource>
-                    <testTarget>9</testTarget>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <testSource>1.8</testSource>
+                    <testTarget>1.8</testTarget>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -46,7 +50,7 @@
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>tech.dario.dissertation.timecomplexityanalyser.Main</Main-Class>
+                                        <Main-Class>tech.dario.timecomplexityanalysis.analyser.Main</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
@@ -58,17 +62,17 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>tech.dario.dissertation</groupId>
+            <groupId>tech.dario.timecomplexityanalysis</groupId>
             <artifactId>time-complexity-analysis-sdk</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>tech.dario.dissertation</groupId>
+            <groupId>tech.dario.timecomplexityanalysis</groupId>
             <artifactId>test-algorithm</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>tech.dario.dissertation</groupId>
+            <groupId>tech.dario.timecomplexityanalysis</groupId>
             <artifactId>time-recorder-akka</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
@@ -77,12 +81,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.25</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.1.7</version>
+            <version>1.2.3</version>
         </dependency>
     </dependencies>
 </project>
