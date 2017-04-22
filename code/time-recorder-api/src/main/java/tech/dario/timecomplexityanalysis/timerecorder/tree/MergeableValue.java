@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.tree;
+package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 public interface MergeableValue<T extends MergeableValue<T>> {
   T mergeWith(T mergeableValue);

@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.tree;
+package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 public class NodesPair<T1, R1 extends AbstractNode<T1, R1>, T2, R2 extends AbstractNode<T2, R2>> {
   private final R1 node1;

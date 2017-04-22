@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.tree;
+package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 public class MergeableTree<T extends MergeableValue<T>> extends AbstractTree<T, MergeableNode<T>, MergeableTree<T>> implements MergeableValue<MergeableTree<T>> {
 

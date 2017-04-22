@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.tree;
+package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;

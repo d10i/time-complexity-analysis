@@ -1,10 +1,10 @@
-package tech.dario.dissertation.timerecorder.tree;
+package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import tech.dario.dissertation.agent.annotations.Measured;
+import tech.dario.timecomplexityanalysis.annotations.Measured;
 
 import java.util.*;
 
@@ -35,7 +35,7 @@ public class MeasuredStackTraceElements {
   public static MeasuredStackTraceElements fromStackTrace(StackTraceElement[] stackTrace) throws NotFoundException {
     List<String> measuredStackTraceElementNames = new ArrayList<>(stackTrace.length);
     for (StackTraceElement stackTraceElement : stackTrace) {
-      String stackTraceElementName = getStackTraceElementName(stackTraceElement);
+      final String stackTraceElementName = getStackTraceElementName(stackTraceElement);
       Boolean measuredMethod = measuredStackTraceElementNamesCache.get(stackTraceElementName);
       if (measuredMethod == null) {
         measuredMethod = isMeasuredMethod(stackTraceElement);
@@ -52,6 +52,7 @@ public class MeasuredStackTraceElements {
 
   private static String getStackTraceElementName(StackTraceElement stackTraceElement) {
     return stackTraceElement.getClassName().concat(".").concat(stackTraceElement.getMethodName());
+    stackTraceElement.
   }
 
   private static boolean isMeasuredMethod(StackTraceElement stackTraceElement) throws NotFoundException {
@@ -72,6 +73,10 @@ public class MeasuredStackTraceElements {
     return stackTraceElementNames.size();
   }
 
+  private int calculateHashCode() {
+    return stackTraceElementNames != null ? stackTraceElementNames.hashCode() : 0;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -79,40 +84,12 @@ public class MeasuredStackTraceElements {
 
     MeasuredStackTraceElements that = (MeasuredStackTraceElements) o;
 
-    if (stackTraceElementNames != null && that.stackTraceElementNames != null) {
-      return stackTraceElementNames.hashCode() == that.stackTraceElementNames.hashCode() && stackTraceElementListsAreEqual(stackTraceElementNames, that.stackTraceElementNames);
-    } else {
-      return stackTraceElementNames == null && that.stackTraceElementNames == null;
-    }
+    return stackTraceElementNames != null ? stackTraceElementNames.equals(that.stackTraceElementNames) : that.stackTraceElementNames == null;
   }
 
   @Override
   public synchronized int hashCode() {
     return hashCode;
-  }
-
-  private int calculateHashCode() {
-    final int prime = 31;
-    int result = 1;
-    for (String stackTraceElementName : stackTraceElementNames) {
-      result = result * prime + stackTraceElementName.hashCode();
-    }
-
-    return result;
-  }
-
-  private boolean stackTraceElementListsAreEqual(List<String> stackTraceElementList1, List<String> stackTraceElementList2) {
-    if (stackTraceElementList1.size() == stackTraceElementList2.size()) {
-      for (int i = 0; i < stackTraceElementList1.size(); i++) {
-        if (!stackTraceElementList1.get(i).equals(stackTraceElementList2.get(i))) {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    return false;
   }
 
   @Override

@@ -1,4 +1,4 @@
-package tech.dario.dissertation.timerecorder.tree;
+package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 import java.util.Map;
 
@@ -13,13 +13,13 @@ public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, 
   }
 
   public void add(T data, MeasuredStackTraceElements measuredStackTraceElements) {
-    if(measuredStackTraceElements.size() == 0) {
+    if (measuredStackTraceElements.size() == 0) {
       mergeData(data);
       return;
     }
 
     String lastElement = measuredStackTraceElements.getLastElement();
-    if(hasChild(lastElement)) {
+    if (hasChild(lastElement)) {
       getChild(lastElement).add(data, measuredStackTraceElements.withLastElementRemoved());
     } else {
       MergeableNode<T> newNode = new MergeableNode<>(lastElement);
@@ -30,11 +30,11 @@ public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, 
 
   @Override
   public MergeableNode<T> mergeWith(MergeableNode<T> otherNode) {
-    if(otherNode == null) {
+    if (otherNode == null) {
       return this;
     }
 
-    if(!getName().equals(otherNode.getName())) {
+    if (!getName().equals(otherNode.getName())) {
       String message = String.format("Cannot merge MergeableNode '%s' with MergeableNode '%s' as names are different", getName(), otherNode.getName());
       throw new RuntimeException(message);
     }
@@ -45,9 +45,9 @@ public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, 
     mergedNode.mergeData(otherNode.getData());
 
     // Add all children that are in this node, merging them with the ones in the other node when they exist
-    for(Map.Entry<String, MergeableNode<T>> child: getChildren().entrySet()) {
+    for (Map.Entry<String, MergeableNode<T>> child : getChildren().entrySet()) {
       String childName = child.getKey();
-      if(otherNode.hasChild(childName)) {
+      if (otherNode.hasChild(childName)) {
         mergedNode.add(child.getValue().mergeWith(otherNode.getChild(childName)));
       } else {
         mergedNode.add(child.getValue());
@@ -55,9 +55,9 @@ public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, 
     }
 
     // Add all children that are in otherNode but not in this node
-    for(Map.Entry<String, MergeableNode<T>> child: otherNode.getChildren().entrySet()) {
+    for (Map.Entry<String, MergeableNode<T>> child : otherNode.getChildren().entrySet()) {
       String childName = child.getKey();
-      if(!mergedNode.hasChild(childName)) {
+      if (!mergedNode.hasChild(childName)) {
         mergedNode.add(child.getValue());
       }
     }
@@ -66,9 +66,9 @@ public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, 
   }
 
   private void mergeData(final T otherData) {
-    if(!this.hasData()) {
+    if (!this.hasData()) {
       setData(otherData);
-    } else if(otherData != null) {
+    } else if (otherData != null) {
       setData(getData().mergeWith(otherData));
     }
   }
