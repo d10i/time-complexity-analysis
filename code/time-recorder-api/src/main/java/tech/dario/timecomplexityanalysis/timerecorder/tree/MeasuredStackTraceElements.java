@@ -52,7 +52,6 @@ public class MeasuredStackTraceElements {
 
   private static String getStackTraceElementName(StackTraceElement stackTraceElement) {
     return stackTraceElement.getClassName().concat(".").concat(stackTraceElement.getMethodName());
-    stackTraceElement.
   }
 
   private static boolean isMeasuredMethod(StackTraceElement stackTraceElement) throws NotFoundException {

@@ -112,8 +112,6 @@ public class AkkaTimeRecorder implements TimeRecorder {
       Future<Object> future = Patterns.ask(service, new Save(), timeout);
       MergeableTree<Metrics> tree = ((MergeableTree<Metrics>) Await.result(future, timeout.duration()));
 
-      LOGGER.debug("Pre-normalisation: " + tree.toString());
-
       Future<Boolean> stopped = Patterns.gracefulStop(service, timeout.duration(), new Shutdown());
       LOGGER.debug("Awaiting actor system termination");
       Await.result(stopped, timeout.duration());

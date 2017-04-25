@@ -1,19 +1,22 @@
 \chapter{Implementation}
 
-TODO: intro
-
-% Discuss requirements... measure observer effect
-% Discuss precision and speed
-% Maven
-% tests/TDD
-% logging & debugging
-% code snippets are simplified (no logging, no final)
+This chapter discusses how the software has been implemented. Section \ref{sec:implementation:overview} gives an overview about the tools and techniques being used. Sections \ref{sec:implementation:annotations}-\ref{sec:implementation:timecomplexityanalyser} will discuss the implementation of each existing module that has been introduced in the previous chapter.
 
 \section{Overview}
+\label{sec:implementation:overview}
 
-TODO
+TODO:
+\begin{itemize}
+  \item Discuss requirements... measure observer effect
+  \item Discuss precision and speed
+  \item Talk about Maven (modules and dependencies)
+  \item Testing approach (TDD)
+  \item Logging and debugging
+  \item Code snippets are simplified (no logging, no final, etc)
+\end{itemize}
 
 \section{Annotations}
+\label{sec:implementation:annotations} 
 This module defines a package \code{tech.dario.timecomplexityanalysis.annotations} which simply contains one single annotation, shown in Listing \ref{lis:measured}.
 \begin{lstlisting}[caption={Measured annotation},label=lis:measured]
 public %%@interface%% Measured {
@@ -59,8 +62,8 @@ public class MeasuringAgent {
 \label{sec:implementation:agent:configuration}
 The agent can be configured with four different parameters:
 \begin{enumerate}
-  \item \textbf{\code{whitelist}}: a set of regexes\footnote{Regular expressions} indicating what methods to instrument. Default: empty list
-  \item \textbf{\code{blacklist}}: a set of regexes indicating what methods to not instrument. Default: empty list
+  \item \textbf{\code{whitelist}}: a set of regexes\footnote{Regular expressions} indicating what methods to instrument. Default: empty set
+  \item \textbf{\code{blacklist}}: a set of regexes indicating what methods to not instrument. Default: empty set
   \item \textbf{\code{excludeStandardJavaLibrary}}: a flag indicating whether to exclude classes that are part of the standard Java 8 library\footnote{\code{java}, \code{javax}, \code{jdk}, \code{sun}, \code{com.oracle.net}, \code{com.sun}, \code{org.ietf.jgss} and \code{org.jcp.xml.dsig.internal} packages}. Default: \code{true}
   \item \textbf{\code{excludeStandardScalaLibrary}}:  a flag indicating whether to exclude classes that are part of the standard Scala library\footnote{\code{scala} package}. Default: \code{true}
 \end{enumerate}
@@ -148,7 +151,7 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
 }
 \end{lstlisting}
 
-\noindent \code{MeasuringClassFileTransformer} implements \code{interface} \code{java.lang.instrument.ClassFileTransformer}\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html} which implements method \code{transform} shown in Listing \ref{lis:measuringclassfiletransformer:transform}. By implementing this interface, \code{MetricAgent} can use \code{MeasuringClassFileTransformer} as one of its transformers and because of that each class being loaded in the JVM will pass through this transformer for optional instrumentation. This class' responsibility is to determine whether the class being loaded should be instrumented and if so to instrument it.
+\noindent \code{MeasuringClassFileTransformer} implements \code{interface} \code{java.lang.instrument.ClassFileTransformer}\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html} which defines method \code{transform} shown in Listing \ref{lis:measuringclassfiletransformer:transform}. By implementing this interface, \code{MetricAgent} can use \code{MeasuringClassFileTransformer} as one of its transformers and because of that each class being loaded in the JVM will pass through this transformer for optional instrumentation. This class' responsibility is to determine whether the class being loaded should be instrumented and if so to instrument it.
 
 \begin{lstlisting}[breaklines,caption={$MeasuringClassFileTransformer.transform$ implementation},label=lis:measuringclassfiletransformer:transform]
 $$@Override
@@ -187,7 +190,7 @@ public byte[] transform(
   \item It's part of the \code{javaassist} package or the \code{tech.dario.timecomplexityanalysis.timerecorder} package (this is to avoid instrumenting classes that are needed for instrumentation itself)
 \end{itemize}
 
-\noindent If the class is excluded, the method returns \code{null} which instruct the JVM that this class should be loaded without any instrumentation applied. Otherwise it loads the class from the default \code{ClassPool}\footnote{https://jboss-javassist.github.io/javassist/html/javassist/ClassPool.html} and uses private method \code{isClassExcludedByImplementation} to check whether the class should be excluded based on its implementation. In the context of instrumentation the term \enquote{class} is used in a more generic way and includes annotations, arrays, enums, interfaces and primitives too. \code{MeasuringClassFileTransformer} excludes any class that is not an actual class (i.e. defined with the \code{class} keyword) from instrumentation by returning \code{null}.
+\noindent If the class is excluded, the method returns \code{null} which instructs the JVM that this class should be loaded without any instrumentation applied. Otherwise it loads the class from the default \code{ClassPool}\footnote{https://jboss-javassist.github.io/javassist/html/javassist/ClassPool.html} and uses private method \code{isClassExcludedByImplementation} to check whether the class should be excluded based on its implementation. In the context of instrumentation the term \enquote{class} is used in a more generic way and includes annotations, arrays, enums, interfaces and primitives too. \code{MeasuringClassFileTransformer} excludes any class that is not an actual class (i.e. defined with the \code{class} keyword) from instrumentation by returning \code{null}.
 
 \noindent Now the time recorder is declared and instantiated in the class by using the private method \code{declareAndInstantiateTimeRecorder}. It instruments the class by declaring a private, static and final field called \code{\_AGENT\_TIME\_RECORDER} as shown in Listing \ref{lis:measuringclassfiletransformer:agenttimerecorder}. Note that at this point the instrumented class is using the time recorder API to report time and is unaware of what the actual time recorder implementation is (see implementation in Section \ref{sec:implementation:timerecorderapi}).
 
@@ -256,7 +259,7 @@ private int findBestMatchingPatternLength(final String input, final Set<Pattern>
 }
 \end{lstlisting}
 
-\noindent When a method is elected for instrumentation, its implementation is changed by timing it and reporting the time taken in nanoseconds and the thread \code{StackTrace} to the time reporter just before the method returns. Listing \ref{lis:measuringclassfiletransformer:methodinstrumentationexample} shows an example of instrumented method. Note that the \code{@Measured} annotation could have already been there because specified by the end user, but it is also added by the transformer as the time recorder implementation will need to know what methods are instrumented in order to build the call graph (see Section \ref{sec:implementation:timerecorderimplementation}).
+\noindent When a method is elected for instrumentation, its implementation is changed by timing it and reporting the time taken in nanoseconds and the thread \code{StackTrace} to the time reporter just before the method returns. Listing \ref{lis:measuringclassfiletransformer:methodinstrumentationexample} shows an example of instrumented method. Note that the \code{@Measured} annotation could have already been there because specified by the end user, but it is also added by the transformer as the time recorder implementation will need to know what methods are instrumented in order to build the call tree (see Section \ref{sec:implementation:timerecorderimplementation}).
 
 \begin{lstlisting}[breaklines,caption={Method instrumentation example},label=lis:measuringclassfiletransformer:methodinstrumentationexample]
 $$@Measured
@@ -304,5 +307,5 @@ TODO
 
 
 \section{Time complexity analyser}
-
+\label{sec:implementation:timecomplexityanalyser} 
 TODO

@@ -1,10 +1,405 @@
 \chapter{Requirements analysis}
 
-This chapter aims to determine the software requirements to help tailor the design and implementation of the software.
+This chapter aims to determine the software requirements to help tailor the software design and implementation. Section \ref{sec:requirementanalysis:definitions} introduces some definitions and concepts that are going to be used across the document. The software can be divided into two different concerns: profiling and analysis. The profiling part is responsible for the measuring of time spent in each instrumented method and its requirement are discussed in Section \ref{sec:requirementanalysis:profiling}. The analysis part takes the data measured by the profiler and works out the time complexity of the algorithm under test. Its requirements are discussed in Section \ref{sec:requirementanalysis:analysis}. These two concerns have very different types of requirements, mainly because the former runs at the same time as the tested algorithm, while the latter does not.
 
-\noindent The software can be divided into two different concerns: profiling and analysis. The profiling part is responsible for the measuring of time spent in each instrumented method. The analysis part takes the data measured by the profiler and works out the time complexity of the algorithm under test. These two concerns have very different types of requirements, mainly because the former runs at the same time as the tested algorithm, while the latter does not.
+\section{Definitions}
+\label{sec:requirementanalysis:definitions}
+
+\subsection{Input size}
+Throughout the document, the input size is always indicated with $n$. An algorithm's time complexity quantifies the amount of time taken to run as a function of the input size $n$. For example, for a sorting algorithm the input size $n$ is the size of the list being sorted.
+
+\subsection{Round}
+For the scope of this dissertation, a round is the execution of the algorithm under test with a given known input. For example, if the algorithm under test is a sorting algorithm, a round is the sorting of a list of known size $n$.
+
+\subsection{Call tree}
+A call tree is a more specific version of a call graph\cite{GKM00}, where each node corresponds to a specific stack trace. The difference between a call tree and a call graph is that in the former a method can appear more than once if it's called by different methods, while in the latter it would only appear once and have several edges pointing to it.
+
+\noindent For the scope of this dissertation, three types of call trees are introduced in the next sections.
+
+\subsubsection{Raw call tree}
+In a raw call tree, each node contains information about how much total time has been spent inside this method (specifically in this call stack path), including inside each of the methods it calls (its children). It also contains information about how many total times the method has been called, which is affected by the amount of times its parent has been called. Figure \ref{fig:rawcalltree} shows an example of raw call tree.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[->,>=stealth']
+    \coordinate (START);
+
+    % FIRST LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=START] (METHOD_1) 
+    {
+      \begin{tabular}{c}
+        $method1$\\
+        \SI{2.42890}{\second}
+      \end{tabular}
+    };
+
+
+    % SECOND LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_1] (METHOD_2) 
+    {
+      \begin{tabular}{c}
+        $method2$\\
+        \SI{2.42882}{\second}
+      \end{tabular}
+    };
+
+
+    % THIRD LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_2] (METHOD_5) 
+    {
+      \begin{tabular}{c}
+        $method5$\\
+        \SI{44.0333}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      left of=METHOD_5] (METHOD_4) 
+    {
+      \begin{tabular}{c}
+        $method4$\\
+        \SI{38.7951}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      left of=METHOD_4] (METHOD_3) 
+    {
+      \begin{tabular}{c}
+        $method3$\\
+        \SI{38.7226}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      right of=METHOD_5] (METHOD_6) 
+    {
+      \begin{tabular}{c}
+        $method6$\\
+        \SI{96.8115}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      right of=METHOD_6] (METHOD_7) 
+    {
+      \begin{tabular}{c}
+        $method7$\\
+        \SI{19.1530}{\micro\second}
+      \end{tabular}
+    };
+
+
+    % FOURTH LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_5] (METHOD_7B) 
+    {
+      \begin{tabular}{c}
+        $method7$\\
+        \SI{17.3212}{\micro\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      left of=METHOD_7B] (METHOD_8) 
+    {
+      \begin{tabular}{c}
+        $method8$\\
+        \SI{3.98597}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      right of=METHOD_7B] (METHOD_9) 
+    {
+      \begin{tabular}{c}
+        $method9$\\
+        \SI{3.39835}{\milli\second}
+      \end{tabular}
+    };
+
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_7] (METHOD_10) 
+    {
+      \begin{tabular}{c}
+        $method10$\\
+        \SI{3.23900}{\micro\second}
+      \end{tabular}
+    };
+
+
+    % FIFTH LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_7B] (METHOD_10B) 
+    {
+      \begin{tabular}{c}
+        $method10$\\
+        \SI{1.58250}{\micro\second}
+      \end{tabular}
+    };
+
+            
+    % LINES
+    \begin{scope}[every node/.style={fill=white,inner sep=0.25em,outer sep=0.0em}]
+      \path
+      (START) edge node {$1$} (METHOD_1)
+      (METHOD_1) edge node {$1$} (METHOD_2)
+      (METHOD_2) edge node {$1$} (METHOD_3)
+      (METHOD_2) edge node {$1$} (METHOD_4)
+      (METHOD_2) edge node {$50$} (METHOD_5)
+      (METHOD_2) edge node {$1$} (METHOD_6)
+      (METHOD_2) edge node {$1$} (METHOD_7)
+      (METHOD_5) edge node {$50$} (METHOD_8)
+      (METHOD_5) edge node {$50,000$} (METHOD_7B)
+      (METHOD_5) edge node {$50$} (METHOD_9)
+      (METHOD_7) edge node {$1$} (METHOD_10)
+      (METHOD_7B) edge node {$50,000$} (METHOD_10B)
+      ;
+    \end{scope}
+  \end{tikzpicture}
+  \caption{A raw call tree}
+  \label{fig:rawcalltree}
+\end{figure}
+
+\noindent Note: when displayed graphically in this document, the number shown in the node is the average time spent in the method (worked out dividing the total time by the number of calls), while the number shown in the edge is the number of times the method has been called. Also note that values are always approximated to 6 significant digits. This is true for normalised call trees too.
+
+
+\subsubsection{Normalised call tree}
+In a normalised call tree, each node only contains data related to that specific method in isolation of other nodes in the tree. Each node then contains information about how much time has been spent inside this method, excluding the time spent in each of its children. The number of times the method has been called only includes the number of times it has been called directly. Figure \ref{fig:normalisedcalltree} is the normalised version of Figure \ref{fig:rawcalltree}. Note that given a tree representation like this, it's not always possible to determine whether it is a raw or normalised call tree. Call trees in this document are always normalised unless otherwise stated.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[->,>=stealth']
+    \coordinate (START);
+
+    % FIRST LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=START] (METHOD_1) 
+    {
+      \begin{tabular}{c}
+        $method1$\\
+        \SI{75.0810}{\micro\second}
+      \end{tabular}
+    };
+
+
+    % SECOND LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_1] (METHOD_2) 
+    {
+      \begin{tabular}{c}
+        $method2$\\
+        \SI{52.8091}{\milli\second}
+      \end{tabular}
+    };
+
+
+    % THIRD LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_2] (METHOD_5) 
+    {
+      \begin{tabular}{c}
+        $method5$\\
+        \SI{19.3278}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      left of=METHOD_5] (METHOD_4) 
+    {
+      \begin{tabular}{c}
+        $method4$\\
+        \SI{38.7951}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      left of=METHOD_4] (METHOD_3) 
+    {
+      \begin{tabular}{c}
+        $method3$\\
+        \SI{38.7226}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      right of=METHOD_5] (METHOD_6) 
+    {
+      \begin{tabular}{c}
+        $method6$\\
+        \SI{96.8115}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      right of=METHOD_6] (METHOD_7) 
+    {
+      \begin{tabular}{c}
+        $method7$\\
+        \SI{15.9140}{\micro\second}
+      \end{tabular}
+    };
+
+
+    % FOURTH LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_5] (METHOD_7B) 
+    {
+      \begin{tabular}{c}
+        $method7$\\
+        \SI{15.7387}{\micro\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      left of=METHOD_7B] (METHOD_8) 
+    {
+      \begin{tabular}{c}
+        $method8$\\
+        \SI{3.98597}{\milli\second}
+      \end{tabular}
+    };
+    
+    \node[state,
+      node distance=6.75em,
+      right of=METHOD_7B] (METHOD_9) 
+    {
+      \begin{tabular}{c}
+        $method9$\\
+        \SI{3.39835}{\milli\second}
+      \end{tabular}
+    };
+
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_7] (METHOD_10) 
+    {
+      \begin{tabular}{c}
+        $method10$\\
+        \SI{3.23900}{\micro\second}
+      \end{tabular}
+    };
+
+
+    % FIFTH LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_7B] (METHOD_10B) 
+    {
+      \begin{tabular}{c}
+        $method10$\\
+        \SI{1.58250}{\micro\second}
+      \end{tabular}
+    };
+
+            
+    % LINES
+    \begin{scope}[every node/.style={fill=white,inner sep=0.25em,outer sep=0.0em}]
+      \path
+      (START) edge node {$1$} (METHOD_1)
+      (METHOD_1) edge node {$1$} (METHOD_2)
+      (METHOD_2) edge node {$1$} (METHOD_3)
+      (METHOD_2) edge node {$1$} (METHOD_4)
+      (METHOD_2) edge node {$50$} (METHOD_5)
+      (METHOD_2) edge node {$1$} (METHOD_6)
+      (METHOD_2) edge node {$1$} (METHOD_7)
+      (METHOD_5) edge node {$1$} (METHOD_8)
+      (METHOD_5) edge node {$1,000$} (METHOD_7B)
+      (METHOD_5) edge node {$1$} (METHOD_9)
+      (METHOD_7) edge node {$1$} (METHOD_10)
+      (METHOD_7B) edge node {$1$} (METHOD_10B)
+      ;
+    \end{scope}
+  \end{tikzpicture}
+  \caption{A normalised call tree}
+  \label{fig:normalisedcalltree}
+\end{figure}
+
+\subsubsection{Interpolated call tree}
+An interpolated call tree represents a normalised tree as a function of $n$. Each node contains information about the amount of time the method takes to run and the number of times the method is called as a function of the input size $n$. An interpolated call tree is a way of accurately describing an algorithm's time complexity. For example, the interpolated call tree in Figure \ref{fig:interpolatedcalltree} describes an algorithm with time complexity $1 \cdot (2n + ((n^2 + 2) \cdot (n^3 + 0.5 \cdot n)) + (log(3n) \cdot (2.7 \cdot n \cdot log(n) + 4))$.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[->,>=stealth']
+    \coordinate (START);
+
+    % FIRST LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=START] (METHOD_1) 
+    {
+      \begin{tabular}{c}
+        $method1$\\
+        $2n$
+      \end{tabular}
+    };
+
+
+    % SECOND LAYER
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_1,
+      xshift=-6.0em] (METHOD_2) 
+    {
+      \begin{tabular}{c}
+        $method2$\\
+        $n^3 + 0.5 \cdot n$
+      \end{tabular}
+    };
+    \node[state,
+      node distance=6.0em,
+      below of=METHOD_1,
+      xshift=6.0em] (METHOD_3) 
+    {
+      \begin{tabular}{c}
+        $method3$\\
+        $2.7 \cdot n \cdot log(n) + 4$
+      \end{tabular}
+    };
+
+            
+    % LINES
+    \begin{scope}[every node/.style={fill=white,inner sep=0.25em,outer sep=0.0em}]
+      \path
+      (START) edge node {$1$} (METHOD_1)
+      (METHOD_1) edge node {$n^2 + 2$} (METHOD_2)
+      (METHOD_1) edge node {$log(3n)$} (METHOD_3)
+      ;
+    \end{scope}
+  \end{tikzpicture}
+  \caption{An interpolated call tree}
+  \label{fig:interpolatedcalltree}
+\end{figure}
+
+
+
 
 \section{Profiling}
+\label{sec:requirementanalysis:profiling}
 
 \subsection{Limited observer effect impact}
 As the profiler runs together with the algorithm under test, extra care needs to be taken in order to not be impacted by the observer effect \cite{MSH08}. Because they are sharing the same CPU it is not possible to avoid the observer effect, but several things can be done in order to limit its impact as well as measuring it.
@@ -20,9 +415,10 @@ Often there are methods that are called very frequently and are very quick (e.g.
 The profiler needs to be able to handle and store a vast number of measurements without running out of memory and space on disk.
 
 
-TODO: add more?
+\noindent TODO: more?
 
 \section{Analysis}
+\label{sec:requirementanalysis:analysis}
 
 \subsection{Custom test}
 As the software does not perform any static analysis of the algorithm under test, it does not know how to make sure to test all of the edge cases. Moreover, it does not know whether the edge cases are an important factor for the user who is analysing the algorithm (end user). For example, when measuring a sorting algorithm it might be important for the end user to know how well it performs under specific circumstances, such as when the list is already ordered or ordered in decreasing order; it might be completely irrelevant too.
@@ -36,13 +432,12 @@ It needs to be possible to easily change the analysis configuration in order to 
   \item \textbf{Number of samples per round}: number of samples to collect between $n = 1$ and $n = maxN$
   \item \textbf{Samples distribution}: how to distribute the samples in each round (linearly or exponentially)
   \item \textbf{Number of rounds per \emph{n}}: number of times to test the algorithm for each \emph{n}
-  \item \textbf{Number of warmup rounds per \emph{n}}: number of times to run the algorithm without measuring for each \emph{n}
+  \item \textbf{Number of warmup rounds per \emph{n}}: number of times to run the algorithm without profiling for each \emph{n}
   \item \textbf{Number of max outliers to exclude}: maximum number of out outliers to remove for each \emph{n}
 \end{itemize}
 
-
 \subsection{Supported curves}
-Because the software analyses the methods in isolation, it only needs to fit the measured data to one of the basic "primitives" (TODO: is this really a requirement?):
+Because the software analyses the methods in isolation, it only needs to fit the measured data to one of the basic \enquote{primitives} (TODO: is this really a requirement?):
 \begin{itemize}
   \item Constant ($f(n) = a$)
   \item Linear ($f(n) = a \cdot n + b$)
@@ -54,4 +449,4 @@ Because the software analyses the methods in isolation, it only needs to fit the
 \end{itemize}
 
 
-TODO: add more?
+\noindent TODO: more?

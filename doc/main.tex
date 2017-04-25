@@ -13,9 +13,21 @@
 \usepackage{color}
 \usepackage{seqsplit}
 \usepackage{csquotes}
+\usepackage{siunitx}
 
 \usetikzlibrary{arrows,automata}
 \usetikzlibrary{positioning}
+
+\tikzset{
+  state/.style={
+    rectangle,
+    rounded corners,
+    draw=black,
+    minimum height=2em,
+    inner sep=1pt,
+    text centered,
+  },
+}
 
 \newpagestyle{mystyle}{
   \sethead{\chaptertitle}{}{}
@@ -132,6 +144,7 @@
 \include{requirements-analysis}
 \include{design}
 \include{implementation}
+\include{case-studies}
 \include{conclusion}
 
 % Back matter

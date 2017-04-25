@@ -55,7 +55,9 @@ public class TimeComplexityAnalysisSdk {
         final long n = iterator.next();
 
         final MergeableTree<Metrics> metricsTree = runAlgorithmWithN(algorithm, n);
+        LOGGER.debug("Pre-normalisation: {}", metricsTree.toString());
         final MergeableTree<Metrics> normalisedMetricsTree = metricsTree.map(MergeableTree::new, new MetricsNodeNormaliser<>());
+        LOGGER.debug("Post-normalisation: {}", normalisedMetricsTree.toString());
         final MergeableTree<MetricsList> metricsListTree = normalisedMetricsTree.map(MergeableTree::new, new Asd<>());
 
         if (trees.containsKey(n)) {

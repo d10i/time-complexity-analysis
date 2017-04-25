@@ -9,6 +9,7 @@
 
     <logger name="tech.dario.timecomplexityanalysis.agent.MeasuringClassFileTransformer" level="INFO"/>
     <logger name="tech.dario.timecomplexityanalysis.timerecorder.akka" level="DEBUG"/>
+    <logger name="tech.dario.timecomplexityanalysis.sdk" level="DEBUG"/>
     <logger name="akka" level="INFO"/>
 
     <root level="DEBUG">

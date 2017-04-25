@@ -11,50 +11,51 @@ public class MetricsNodeNormaliserTest {
   @Test
   public void testApply() throws Exception {
     // Input tree
-    // (root: null)
-    //   (tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm.doTask: [count: 1.0, tot: 67,426,253.1 μs, avg: 67,426,253.1 μs])
-    //     (tech.dario.timecomplexityanalysis.testalgorithm.Executor1.execute: [count: 1.0, tot: 67,426,162.0 μs, avg: 67,426,162.0 μs])
-    //       (tech.dario.timecomplexityanalysis.testalgorithm.Constant.slow: [count: 1.0, tot: 45.3 μs, avg: 45.3 μs])
-    //       (tech.dario.timecomplexityanalysis.testalgorithm.Quadratic.average: [count: 1.0, tot: 863.9 μs, avg: 863.9 μs])
-    //       (tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute: [count: 1.0, tot: 12.3 μs, avg: 12.3 μs])
-    //         (tech.dario.timecomplexityanalysis.testalgorithm.Cubic.quick: [count: 1.0, tot: 2.1 μs, avg: 2.1 μs])
-    //       (tech.dario.timecomplexityanalysis.testalgorithm.Linearithmic.average: [count: 1.0, tot: 953.1 μs, avg: 953.1 μs])
-    //       (tech.dario.timecomplexityanalysis.testalgorithm.Executor2.execute: [count: 32.0, tot: 67,367,148.1 μs, avg: 2,105,223.4 μs])
-    //         (tech.dario.timecomplexityanalysis.testalgorithm.Linear.average: [count: 32.0, tot: 6,506.8 μs, avg: 203.3 μs])
-    //         (tech.dario.timecomplexityanalysis.testalgorithm.Logarithmic.average: [count: 32.0, tot: 948.6 μs, avg: 29.6 μs])
-    //         (tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute: [count: 960.0, tot: 67,295,324.2 μs, avg: 65,718.1 μs])
-    //           (tech.dario.timecomplexityanalysis.testalgorithm.Cubic.quick: [count: 960.0, tot: 67,263,777.1 μs, avg: 65,687.3 μs])
+    // {root: null}
+    // 1a:  {tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm.doTask: {count: 1.0, tot: 2,428,897,020.0 ns, avg: 2,428,897,020.0 ns}}
+    // 2a:    {tech.dario.timecomplexityanalysis.testalgorithm.Executor1.execute: {count: 1.0, tot: 2,428,821,939.0 ns, avg: 2,428,821,939.0 ns}}
+    // 3a:      {tech.dario.timecomplexityanalysis.testalgorithm.Executor2.execute: {count: 50.0, tot: 2,201,664,474.0 ns, avg: 44,033,289.5 ns}}
+    // 4a:        {tech.dario.timecomplexityanalysis.testalgorithm.Logarithmic.quick: {count: 50.0, tot: 199,298,528.0 ns, avg: 3,985,970.6 ns}}
+    // 4b:        {tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute: {count: 50000.0, tot: 866,058,915.0 ns, avg: 17,321.2 ns}}
+    // 5a:          {tech.dario.timecomplexityanalysis.testalgorithm.Cubic.average: {count: 50000.0, tot: 79,126,330.0 ns, avg: 1,582.5 ns}}
+    // 4c:        {tech.dario.timecomplexityanalysis.testalgorithm.Linear.quick: {count: 50.0, tot: 169,917,416.0 ns, avg: 3,398,348.3 ns}}
+    // 3b:      {tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute: {count: 1.0, tot: 19,153.0 ns, avg: 19,153.0 ns}}
+    // 4d:        {tech.dario.timecomplexityanalysis.testalgorithm.Cubic.average: {count: 1.0, tot: 3,239.0 ns, avg: 3,239.0 ns}}
+    // 3c:      {tech.dario.timecomplexityanalysis.testalgorithm.Quadratic.average: {count: 1.0, tot: 38,722,643.0 ns, avg: 38,722,643.0 ns}}
+    // 3d:      {tech.dario.timecomplexityanalysis.testalgorithm.Linearithmic.average: {count: 1.0, tot: 38,795,069.0 ns, avg: 38,795,069.0 ns}}
+    // 3e:      {tech.dario.timecomplexityanalysis.testalgorithm.Constant.slow: {count: 1.0, tot: 96,811,459.0 ns, avg: 96,811,459.0 ns}}
+
 
     // Input tree
     MergeableTree<Metrics> tree = new MergeableTree<>();
-    MergeableNode<Metrics> node1a = new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1));
-    MergeableNode<Metrics> node2a = node1a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor1.execute", new Metrics(1.0d, 67426162.0)));
-    MergeableNode<Metrics> node3a = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Constant.slow", new Metrics(1.0d, 45.3)));
-    MergeableNode<Metrics> node3b = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Quadratic.average", new Metrics(1.0d, 863.9)));
-    MergeableNode<Metrics> node3c = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute", new Metrics(1.0d, 12.3)));
-    MergeableNode<Metrics> node4a = node3c.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Cubic.quick", new Metrics(1.0d, 2.1)));
-    MergeableNode<Metrics> node3d = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Linearithmic.average", new Metrics(1.0d, 953.1)));
-    MergeableNode<Metrics> node3e = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor2.execute", new Metrics(32.0d, 67367148.1)));
-    MergeableNode<Metrics> node4b = node3e.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Linear.average", new Metrics(32.0d, 6506.8)));
-    MergeableNode<Metrics> node4c = node3e.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Logarithmic.average", new Metrics(32.0d, 948.6)));
-    MergeableNode<Metrics> node4d = node3e.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute", new Metrics(960.0d, 67295324.2)));
-    MergeableNode<Metrics> node5a = node4d.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Cubic.quick", new Metrics(960.0d, 67263777.1)));
+    MergeableNode<Metrics> node1a = new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 2428897020.0d));
+    MergeableNode<Metrics> node2a = node1a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor1.execute", new Metrics(1.0d, 2428821939.0d)));
+    MergeableNode<Metrics> node3a = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor2.execute", new Metrics(50.0d, 2201664474.0d)));
+    MergeableNode<Metrics> node4a = node3a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Logarithmic.quick", new Metrics(50.0d, 199298528.0d)));
+    MergeableNode<Metrics> node4b = node3a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute", new Metrics(50000.0d, 866058915.0d)));
+    MergeableNode<Metrics> node5a = node4b.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Cubic.average", new Metrics(50000.0d, 79126330.0d)));
+    MergeableNode<Metrics> node4c = node3a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Linear.quick", new Metrics(50.0d, 169917416.0d)));
+    MergeableNode<Metrics> node3b = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute", new Metrics(1.0, 19153.0d)));
+    MergeableNode<Metrics> node4d = node3b.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Cubic.average", new Metrics(1.0, 3239.0d)));
+    MergeableNode<Metrics> node3c = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Quadratic.average", new Metrics(1.0d, 38722643.0d)));
+    MergeableNode<Metrics> node3d = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Linearithmic.average", new Metrics(1.0d, 38795069.0d)));
+    MergeableNode<Metrics> node3e = node2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Constant.slow", new Metrics(1.0d, 96811459.0d)));
     tree.add(node1a);
 
     // Expected normalised tree
     MergeableTree<Metrics> normalisedTree = new MergeableTree<>();
-    MergeableNode<Metrics> newNode1a = new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 67426253.1 - 67426162.0));
-    MergeableNode<Metrics> newNode2a = newNode1a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor1.execute", new Metrics(1.0d, 67426162.0 - 45.3 - 863.9 - 12.3 - 953.1 - 67367148.1)));
-    MergeableNode<Metrics> newNode3a = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Constant.slow", new Metrics(1.0d, 45.3)));
-    MergeableNode<Metrics> newNode3b = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Quadratic.average", new Metrics(1.0d, 863.9)));
-    MergeableNode<Metrics> newNode3c = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute", new Metrics(1.0d, 12.3 - 2.1)));
-    MergeableNode<Metrics> newNode4a = newNode3c.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Cubic.quick", new Metrics(1.0d, 2.1)));
-    MergeableNode<Metrics> newNode3d = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Linearithmic.average", new Metrics(1.0d, 953.1)));
-    MergeableNode<Metrics> newNode3e = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor2.execute", new Metrics(32.0d, 67367148.1 - 6506.8 - 948.6 - 67295324.2)));
-    MergeableNode<Metrics> newNode4b = newNode3e.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Linear.average", new Metrics(1.0d, 6506.8 / 32.0)));
-    MergeableNode<Metrics> newNode4c = newNode3e.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Logarithmic.average", new Metrics(1.0d, 948.6 / 32.0)));
-    MergeableNode<Metrics> newNode4d = newNode3e.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute", new Metrics(30.0d, (67295324.2 - 67263777.1) / 32.0)));
-    MergeableNode<Metrics> newNode5a = newNode4d.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Cubic.quick", new Metrics(1.0d, 67263777.1 / 960.0)));
+    MergeableNode<Metrics> newNode1a = new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 2428897020.0d - 2428821939.0d));
+    MergeableNode<Metrics> newNode2a = newNode1a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor1.execute", new Metrics(1.0d, 2428821939.0d - 2201664474.0d - 19153.0d - 38722643.0d - 38795069.0d - 96811459.0d)));
+    MergeableNode<Metrics> newNode3a = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor2.execute", new Metrics(50.0d, 2201664474.0d - 199298528.0d - 866058915.0d - 169917416.0d)));
+    MergeableNode<Metrics> newNode4a = newNode3a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Logarithmic.quick", new Metrics(1.0d, 199298528.0d / 50.0d)));
+    MergeableNode<Metrics> newNode4b = newNode3a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute", new Metrics(1000.0d, (866058915.0d - 79126330.0d) / 50.0d)));
+    MergeableNode<Metrics> newNode5a = newNode4b.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Cubic.average", new Metrics(1.0d, 79126330.0d / (50.0d * 1000.0d))));
+    MergeableNode<Metrics> newNode4c = newNode3a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Linear.quick", new Metrics(1.0d, 169917416.0d / 50.0d)));
+    MergeableNode<Metrics> newNode3b = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Executor3.execute", new Metrics(1.0, 19153.0d - 3239.0d)));
+    MergeableNode<Metrics> newNode4d = newNode3b.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Cubic.average", new Metrics(1.0, 3239.0d)));
+    MergeableNode<Metrics> newNode3c = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Quadratic.average", new Metrics(1.0d, 38722643.0d)));
+    MergeableNode<Metrics> newNode3d = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Linearithmic.average", new Metrics(1.0d, 38795069.0d)));
+    MergeableNode<Metrics> newNode3e = newNode2a.add(new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.Constant.slow", new Metrics(1.0d, 96811459.0d)));
     normalisedTree.add(newNode1a);
 
     assertEquals("Expected correct normalised tree", normalisedTree, tree.map(MergeableTree::new, new MetricsNodeNormaliser<>()));
