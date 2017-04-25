@@ -123,6 +123,7 @@ This module doesn't contain any implementation, only Java annotations. A Java an
 
 
 \section{Agent}
+\label{sec:design:agent}
 This module contains the logic to instrument the algorithm under test. First the agent will detect which methods need to be instrumented based on annotations, whitelists and blacklists. Secondly the agent will instrument each of these methods by measuring the time passed during the method execution. This number will then be passed to the time recorder implementation (see next sections) which will take care of storing it for later processing.
 
 \noindent The built agent is a JAR\footnote{https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jarGuide.html} file which will need to be attached to the system by passing \code{-javaagent:jarpath[=options]}\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/package-summary.html} on the command-line, where \code{jarpath} is the path to the agent JAR while \code{options} are the options, such as whitelists and blacklists. This will instrument the algorithm under test at runtime when the instrumented methods are used for the first time.

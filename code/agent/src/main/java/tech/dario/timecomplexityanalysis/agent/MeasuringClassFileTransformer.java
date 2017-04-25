@@ -13,6 +13,7 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.IntSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,26 +22,24 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(MeasuringClassFileTransformer.class);
 
-  private final static Set<Pattern> STANDARD_JAVA_API = new HashSet<Pattern>() {{
+  private final static Set<Pattern> STANDARD_JAVA_LIBRARY = new HashSet<Pattern>() {{
     add(Pattern.compile("^java/"));
     add(Pattern.compile("^javax/"));
     add(Pattern.compile("^jdk/"));
     add(Pattern.compile("^sun/"));
     add(Pattern.compile("^com/oracle/net/"));
-    add(Pattern.compile("^com/sun"));
+    add(Pattern.compile("^com/sun/"));
     add(Pattern.compile("^org/ietf/jgss/"));
     add(Pattern.compile("^org/jcp/xml/dsig/internal/"));
   }};
 
-  private final static Set<Pattern> STANDARD_SCALA_API = new HashSet<Pattern>() {{
+  private final static Set<Pattern> STANDARD_SCALA_LIBRARY = new HashSet<Pattern>() {{
     add(Pattern.compile("^scala/"));
   }};
 
   private final static Set<Pattern> ALWAYS_EXCLUDE = new HashSet<Pattern>() {{
     add(Pattern.compile("^javaassist/"));
-    add(Pattern.compile("^tech/dario/timecomplexityanalysis/timerecorder/api/"));
-    add(Pattern.compile("^tech/dario/timecomplexityanalysis/timerecorder/impl/"));
-    add(Pattern.compile("^tech/dario/timecomplexityanalysis/timerecorder/tree/"));
+    add(Pattern.compile("^tech/dario/timecomplexityanalysis/timerecorder/"));
   }};
 
   private final Config config;
@@ -49,12 +48,8 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
   private final Set<Pattern> blacklistPatterns;
 
   public MeasuringClassFileTransformer(final Config config) {
-    this(config, ClassPool.getDefault());
-  }
-
-  public MeasuringClassFileTransformer(final Config config, final ClassPool classPool) {
     this.config = config;
-    this.classPool = classPool;
+    this.classPool = ClassPool.getDefault();
     this.whitelistPatterns = stringSetToPatternSet(config.getWhitelist());
     this.blacklistPatterns = stringSetToPatternSet(config.getBlacklist());
   }
@@ -71,18 +66,18 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
     String className = fullyQualifiedClassName.replace("/", ".");
 
     try {
-      if (!isClassMeasured(fullyQualifiedClassName)) {
+      if (isClassExcludedByName(fullyQualifiedClassName)) {
         return null;
       }
 
       CtClass ctClass = classPool.get(className);
-      if (!isClassMeasured(ctClass)) {
+      if (isClassExcludedByImplementation(ctClass)) {
         return null;
       }
 
-      declareAndInstantiateTimeRecorder(ctClass);
+     declareAndInstantiateTimeRecorder(ctClass);
 
-      boolean isClassModified = instrumentMeasuredMethods(fullyQualifiedClassName, ctClass);
+      boolean isClassModified = instrumentMeasuredMethods(ctClass);
       if (!isClassModified) {
         return null;
       }
@@ -108,37 +103,37 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
             .collect(Collectors.toSet());
   }
 
-  private boolean isClassMeasured(final String fullyQualifiedClassName) {
-    if (config.isExcludeStandardJavaApi() && isMatchAtLeastOneInSet(fullyQualifiedClassName, STANDARD_JAVA_API)) {
-      LOGGER.debug("Skipping class {}: standard Java API", fullyQualifiedClassName);
-      return false;
+  private boolean isClassExcludedByName(final String fullyQualifiedClassName) {
+    if (config.isExcludeStandardJavaLibrary() && isMatchAtLeastOneInSet(fullyQualifiedClassName, STANDARD_JAVA_LIBRARY)) {
+      LOGGER.debug("Skipping class {}: standard Java LIBRARY", fullyQualifiedClassName);
+      return true;
     }
 
-    if (config.isExcludeStandardScalaApi() && isMatchAtLeastOneInSet(fullyQualifiedClassName, STANDARD_SCALA_API)) {
-      LOGGER.debug("Skipping class {}: standard Scala API", fullyQualifiedClassName);
-      return false;
+    if (config.isExcludeStandardScalaLibrary() && isMatchAtLeastOneInSet(fullyQualifiedClassName, STANDARD_SCALA_LIBRARY)) {
+      LOGGER.debug("Skipping class {}: standard Scala LIBRARY", fullyQualifiedClassName);
+      return true;
     }
 
     if (isMatchAtLeastOneInSet(fullyQualifiedClassName, ALWAYS_EXCLUDE)) {
       LOGGER.debug("Skipping class {}: always exclude", fullyQualifiedClassName);
-      return false;
+      return true;
     }
 
-    return true;
+    return false;
   }
 
-  private boolean isClassMeasured(final CtClass ctClass) {
+  private boolean isClassExcludedByImplementation(final CtClass ctClass) {
     if (ctClass.isFrozen()) {
       LOGGER.debug("Skipping class {}: is frozen", ctClass.getName());
-      return false;
+      return true;
     }
 
-    if (ctClass.isPrimitive() || ctClass.isArray() || ctClass.isAnnotation() || ctClass.isEnum() || ctClass.isInterface()) {
+    if (ctClass.isAnnotation() || ctClass.isArray() || ctClass.isEnum() || ctClass.isInterface() || ctClass.isPrimitive()) {
       LOGGER.debug("Skipping class {}: not a class", ctClass.getName());
-      return false;
+      return true;
     }
 
-    return true;
+    return false;
   }
 
   private void declareAndInstantiateTimeRecorder(final CtClass ctClass) throws CannotCompileException, NotFoundException {
@@ -149,10 +144,10 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
     ctClass.addField(timeRecorderField, "tech.dario.timecomplexityanalysis.timerecorder.api.StaticTimeRecorderFactory.getTimeRecorder()");
   }
 
-  private boolean instrumentMeasuredMethods(final String fullyQualifiedClassName, final CtClass ctClass) throws CannotCompileException, NotFoundException {
+  private boolean instrumentMeasuredMethods(final CtClass ctClass) throws CannotCompileException, NotFoundException {
     boolean isClassModified = false;
     for (CtMethod ctMethod : ctClass.getDeclaredMethods()) {
-      if (isMethodMeasured(fullyQualifiedClassName, ctClass, ctMethod)) {
+      if (isMethodMeasured(ctClass, ctMethod)) {
         instrumentMethod(ctClass, ctMethod);
         isClassModified = true;
       }
@@ -179,7 +174,7 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
     LOGGER.debug("Instrumented method {}", ctMethod.getLongName());
   }
 
-  private boolean isMethodMeasured(final String fullyQualifiedClassName, final CtClass ctClass, final CtMethod ctMethod) {
+  private boolean isMethodMeasured(final CtClass ctClass, final CtMethod ctMethod) {
     if (ctMethod.getMethodInfo().getCodeAttribute() == null) {
       LOGGER.debug("Skipping method {}: no implementation", ctMethod.getLongName());
       return false;
@@ -224,16 +219,14 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
   }
 
   private boolean isMatchAtLeastOneInSet(final String entityName, final Set<Pattern> patternsSet) {
-    // Entity name can be a class name (CtClass::getName) or a method long name (CtMethod::getLongName)
     return patternsSet
             .stream()
             .anyMatch(pattern -> pattern.matcher(entityName).find());
   }
 
-  private InstrumentationStatus getInstrumentationStatus(final String methodLongName) {
-    // The more '.', '(' and ',' in the match and the more targeted the pattern is
-    final int bestWhitelistMatch = findBestMatchingPatternLevel(methodLongName, "[\\.\\(,]", whitelistPatterns);
-    final int bestBlacklistMatch = findBestMatchingPatternLevel(methodLongName, "[\\.\\(,]", blacklistPatterns);
+  private InstrumentationStatus getInstrumentationStatus(final String entityName) {
+    final int bestWhitelistMatch = findBestMatchingPatternLength(entityName, whitelistPatterns);
+    final int bestBlacklistMatch = findBestMatchingPatternLength(entityName, blacklistPatterns);
     if (bestWhitelistMatch == 0 && bestBlacklistMatch == 0) {
       return InstrumentationStatus.INDIFFERENT;
     }
@@ -245,23 +238,14 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
     return InstrumentationStatus.WHITELISTED;
   }
 
-  private int findBestMatchingPatternLevel(final String input, String regex, final Set<Pattern> patternsSet) {
-    int currentBest = 0;
-    if (patternsSet != null) {
-      for (Pattern pattern : patternsSet) {
-        final Matcher matcher = pattern.matcher(input);
-        if (matcher.find()) {
-          // Count how many regex occurrences in the match, the more the are and the more targeted the pattern is
-          final int level = countMatches(matcher.group(0), regex);
-          currentBest = Math.max(currentBest, level);
-        }
-      }
-    }
-
-    return currentBest;
-  }
-
-  private int countMatches(final String input, final String regex) {
-    return input.length() - input.replaceAll(regex, "").length();
+  private int findBestMatchingPatternLength(final String input, final Set<Pattern> patternsSet) {
+    return patternsSet
+      .stream()
+      .map(pattern -> pattern.matcher(input))
+      .filter(Matcher::find)
+      .map(matcher -> matcher.group(0).length())
+      .mapToInt(i -> i)
+      .max()
+      .orElse(0);
   }
 }

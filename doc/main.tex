@@ -10,6 +10,9 @@
 \usepackage{tikz}
 \usepackage[section]{placeins}
 \usepackage{listings}
+\usepackage{color}
+\usepackage{seqsplit}
+\usepackage{csquotes}
 
 \usetikzlibrary{arrows,automata}
 \usetikzlibrary{positioning}
@@ -25,9 +28,94 @@
 
 \pagenumbering{roman}
 
-\def\code#1{\texttt{#1}}
+\def\code#1{\texttt{\seqsplit{#1}}}
 
-\lstset{language=Java,basicstyle=\small}
+\definecolor{pblack}{rgb}{0.0,0.0,0.0}
+\definecolor{pblue}{rgb}{0.0,0.0,0.5}
+\definecolor{pbrightblue}{rgb}{0.0,0.0,1.0}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{pred}{rgb}{0.9,0,0}
+\definecolor{pgrey}{rgb}{0.5,0.5,0.5}
+\definecolor{pdarkyellow}{rgb}{0.5,0.5,0.0}
+\definecolor{ppurple}{rgb}{0.4,0.05,0.48}
+
+\lstset{
+  language            = Java,
+  basicstyle          = \scriptsize,
+  % xleftmargin         = -4.0em,
+  % xrightmargin        = -4.0em,
+  frame               = single,
+  identifierstyle     = \color{pblack},
+  commentstyle        = \color{pgrey},
+  keywordstyle        = \color{pblue},
+  stringstyle         = \color{pgreen},
+  moredelim=[il][\textcolor{pdarkyellow}]{$$},
+  moredelim=[is][\textcolor{pdarkyellow}]{\%\%}{\%\%}
+}
+
+\newcommand\JSONnumbervaluestyle{\color{pbrightblue}}
+\newcommand\JSONstringkeystyle{\color{ppurple}}
+\newcommand\JSONstringvaluestyle{\color{pgreen}}
+
+\newif\ifcolonfoundonthisline
+\newif\ifsquarebracketopen
+
+\makeatletter
+
+\lstdefinestyle{json}
+{
+  basicstyle          = \scriptsize,
+  % xleftmargin         = -4.0em,
+  % xrightmargin        = -4.0em,
+  frame               = single,
+  showstringspaces    = false,
+  keywords            = {false,true},
+  alsoletter          = 0123456789.,
+  morestring          = [s]{"}{"},
+  stringstyle         = \ifcolonfoundonthisline\JSONstringvaluestyle\else\ifsquarebracketopen\JSONstringvaluestyle\else\JSONstringkeystyle\fi\fi,
+  MoreSelectCharTable =%
+    \lst@DefSaveDef{`:}\colon@json{\processColon@json}
+    \lst@DefSaveDef{`[}\squareBracketOpen@json{\processOpenSquareBracket@json}
+    \lst@DefSaveDef{`]}\squareBracketClose@json{\processCloseSquareBracket@json},
+  keywordstyle        = \color{pblue},
+}
+
+\newcommand\processColon@json{%
+  \colon@json%
+  \ifnum\lst@mode=\lst@Pmode%
+    \global\colonfoundonthislinetrue%
+  \fi
+}
+
+\newcommand\processOpenSquareBracket@json{%
+  \squareBracketOpen@json%
+  \ifnum\lst@mode=\lst@Pmode%
+    \global\squarebracketopentrue%
+  \fi
+}
+
+\newcommand\processCloseSquareBracket@json{%
+  \squareBracketClose@json%
+  \ifnum\lst@mode=\lst@Pmode%
+    \global\squarebracketopenfalse%
+  \fi
+}
+
+\lst@AddToHook{Output}{%
+  \ifcolonfoundonthisline%
+    \ifnum\lst@mode=\lst@Pmode%
+      \def\lst@thestyle{\JSONnumbervaluestyle}%
+    \fi
+  \fi
+  %override by keyword style if a keyword is detected!
+  \lsthk@DetectKeywords% 
+}
+
+% reset the switch at the end of line
+\lst@AddToHook{EOL}%
+  {\global\colonfoundonthislinefalse}
+
+\makeatother
 
 \begin{document}
 

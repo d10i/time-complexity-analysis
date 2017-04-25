@@ -22,19 +22,19 @@ public final class Config {
 
   private final Set<String> whitelist;
   private final Set<String> blacklist;
-  private final Boolean excludeStandardJavaApi;
-  private final Boolean excludeStandardScalaApi;
+  private final Boolean excludeStandardJavaLibrary;
+  private final Boolean excludeStandardScalaLibrary;
 
   @JsonCreator
   public Config(
           @JsonProperty("whitelist") final Set<String> whitelist,
           @JsonProperty("blacklist") final Set<String> blacklist,
-          @JsonProperty("excludeStandardJavaApi") final Boolean excludeStandardJavaApi,
-          @JsonProperty("excludeStandardScalaApi") final Boolean excludeStandardScalaApi) {
+          @JsonProperty("excludeStandardJavaLibrary") final Boolean excludeStandardJavaLibrary,
+          @JsonProperty("excludeStandardScalaLibrary") final Boolean excludeStandardScalaLibrary) {
     this.whitelist = whitelist;
     this.blacklist = blacklist;
-    this.excludeStandardJavaApi = excludeStandardJavaApi;
-    this.excludeStandardScalaApi = excludeStandardScalaApi;
+    this.excludeStandardJavaLibrary = excludeStandardJavaLibrary;
+    this.excludeStandardScalaLibrary = excludeStandardScalaLibrary;
   }
 
   public static Config getDefault() {
@@ -81,21 +81,21 @@ public final class Config {
     return blacklist;
   }
 
-  public boolean isExcludeStandardJavaApi() {
-    if (excludeStandardJavaApi == null) {
+  public boolean isExcludeStandardJavaLibrary() {
+    if (excludeStandardJavaLibrary == null) {
       // Exclude by default
       return true;
     }
 
-    return excludeStandardJavaApi;
+    return excludeStandardJavaLibrary;
   }
 
-  public boolean isExcludeStandardScalaApi() {
-    if (excludeStandardScalaApi == null) {
+  public boolean isExcludeStandardScalaLibrary() {
+    if (excludeStandardScalaLibrary == null) {
       // Exclude by default
       return true;
     }
 
-    return excludeStandardScalaApi;
+    return excludeStandardScalaLibrary;
   }
 }

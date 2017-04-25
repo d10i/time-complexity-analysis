@@ -5,29 +5,290 @@ TODO: intro
 % Discuss requirements... measure observer effect
 % Discuss precision and speed
 % Maven
+% tests/TDD
+% logging & debugging
+% code snippets are simplified (no logging, no final)
 
 \section{Overview}
 
 TODO
 
-
 \section{Annotations}
-\begin{lstlisting}
-public @interface Measured {
+This module defines a package \code{tech.dario.timecomplexityanalysis.annotations} which simply contains one single annotation, shown in Listing \ref{lis:measured}.
+\begin{lstlisting}[caption={Measured annotation},label=lis:measured]
+public %%@interface%% Measured {
 }
 \end{lstlisting}
 
+\noindent The annotation can be added to any method and any class and informs the agent that the entity should be time-measured (see next chapter).
+
+
 \section{Agent}
+This module defines a package \code{tech.dario.timecomplexityanalysis.agent} containing the logic to instrument methods in order to measure how long they took and report it to the time recorder implementation. When built, this module produces a JAR file that can be used as a Java agent, as explained in Section \ref{sec:design:agent}.
 
-TODO
+\noindent The \code{MeasuringAgent} class in Listing \ref{lis:measuringagent} defines a \code{premain} method which is called after the Java Virtual Machine (JVM) is initialized and before the \code{main} method is called. This method registers a \code{MeasuringClassFileTransformer} which instruments classes as they get loaded. If the path to a configuration file is passed to the agent as an argument, the file is parsed and the configuration parameters are passed to the class file transformer. Otherwise it uses the default configuration (see Section \ref{sec:implementation:agent:configuration}).
 
+\begin{lstlisting}[breaklines,caption={$MeasuringAgent$ class},label=lis:measuringagent]
+public class MeasuringAgent {
+ public static void premain(
+   String agentArguments,
+   Instrumentation instrumentation) {
+  try {
+   Config config = getConfigFromArguments(agentArguments);
+   instrumentation.addTransformer(
+     new MeasuringClassFileTransformer(config)
+   );
+  } catch (Exception e) {
+   e.printStackTrace();
+   System.exit(1);
+  }
+ }
+
+ private static Config getConfigFromArguments(String agentArguments) throws IOException {
+  if (agentArguments == null || agentArguments.trim().isEmpty()) {
+   // No arguments
+   return Config.getDefault();
+  }
+
+  return Config.fromJsonFilePath(agentArguments);
+ }
+}
+\end{lstlisting}
+
+\subsection{Configuration}
+\label{sec:implementation:agent:configuration}
+The agent can be configured with four different parameters:
+\begin{enumerate}
+  \item \textbf{\code{whitelist}}: a set of regexes\footnote{Regular expressions} indicating what methods to instrument. Default: empty list
+  \item \textbf{\code{blacklist}}: a set of regexes indicating what methods to not instrument. Default: empty list
+  \item \textbf{\code{excludeStandardJavaLibrary}}: a flag indicating whether to exclude classes that are part of the standard Java 8 library\footnote{\code{java}, \code{javax}, \code{jdk}, \code{sun}, \code{com.oracle.net}, \code{com.sun}, \code{org.ietf.jgss} and \code{org.jcp.xml.dsig.internal} packages}. Default: \code{true}
+  \item \textbf{\code{excludeStandardScalaLibrary}}:  a flag indicating whether to exclude classes that are part of the standard Scala library\footnote{\code{scala} package}. Default: \code{true}
+\end{enumerate}
+
+\noindent The \code{Config} class stores this four parameters immutably in memory and has utility static methods to create an instance from a JSON file path or to get the default config. To quickly parse a JSON configuration file it uses Jackson\footnote{http://wiki.fasterxml.com/JacksonHome} as shown in Listing \ref{lis:jsonunmarshalling}. Jackson is a popular Java library for fast JSON marshalling and unmarshalling. The \code{@JsonCreator} annotation informs Jackson to use that constructor to instantiate a new instance of \code{Config} while the \code{@JsonProperty} annotation describes the name of the fields to look for in the JSON file.
+
+\begin{lstlisting}[breaklines,caption={JSON unmarshalling in $Config$},label=lis:jsonunmarshalling]
+public final class Config {
+ private final Set<String> whitelist;
+ private final Set<String> blacklist;
+ private final Boolean excludeStandardJavaLibrary;
+ private final Boolean excludeStandardScalaLibrary;
+
+ $$@JsonCreator
+ public Config(
+   %%@JsonProperty%%("whitelist") final Set<String> whitelist,
+   %%@JsonProperty%%("blacklist") final Set<String> blacklist,
+   %%@JsonProperty%%("excludeStandardJavaLibrary") final Boolean excludeStandardJavaLibrary,
+   %%@JsonProperty%%("excludeStandardScalaLibrary") final Boolean excludeStandardScalaLibrary) {
+  this.whitelist = whitelist;
+  this.blacklist = blacklist;
+  this.excludeStandardJavaLibrary = excludeStandardJavaLibrary;
+  this.excludeStandardScalaLibrary = excludeStandardScalaLibrary;
+ }
+
+ ...
+
+ public static Config fromJsonFile(final File file) throws IOException {
+  ...
+  final ObjectMapper mapper = new ObjectMapper();
+  return mapper.readValue(file, Config.class);
+ }
+
+ ...
+}
+\end{lstlisting}
+
+\noindent Listing \ref{lis:config1} shows an example of configuration which instructs the agent to insturment any method in the \code{tech.dario.timecomplexityanalysis.testalgorithm} package, excluding any method starting with \code{get}. The regexes specified in the \code{whitelist} and \code{blacklist} parameters should be in a format accepted by the \code{compile} method of \code{java.util.regex.Pattern}\footnote{https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html}. For example, method \code{tech.dario.timecomplexityanalysis.testalgorithm.MyClass.getName()} is both whitelisted and blacklisted. The whitelist regex matches \code{tech.dario.timecomplexityanalysis.testalgorithm} while the blacklist element matches \code{tech.dario.timecomplexityanalysis.testalgorithm.MyClass.get}. Because the blacklist element is more targeted, it takes priority over the whitelist element so the method is not instrumented (see Section \ref{sec:implementation:agent:transformation} for more details).
+
+\begin{lstlisting}[breaklines,caption={Configuration JSON file example},label=lis:config1,style=json]
+{
+ "whitelist": [
+  "^tech\\.dario\\.timecomplexityanalysis\\.testalgorithm\\."
+ ],
+ "blacklist": [
+  "^tech\\.dario\\.timecomplexityanalysis\\.testalgorithm\\..+\\.get"
+ ],
+ "excludeStandardJavaLibrary": true,
+ "excludeStandardScalaLibrary": true
+}
+\end{lstlisting}
+
+\subsection{Transformation}
+\label{sec:implementation:agent:transformation}
+
+\code{MeasuringClassFileTransformer} constructor in Listing \ref{lis:measuringclassfiletransformer:constructor} accepts an instance of \code{Config} and saves it in a local field which can be accessed in the transformation. It also compiles the whitelist and blacklist regexes converting them from \code{String} to \code{Pattern} and saves them in two local fields of type \code{Set<Pattern>} called \code{whitelistPatterns} and \code{blacklistPatterns} respectively. Doing this step upfront decreases the time the transformation takes as it ensures that each regex is only compiled once as opposed to compiling it each time a method is checked for instrumentation.
+
+\begin{lstlisting}[breaklines,caption={$MeasuringClassFileTransformer$ initialization},label=lis:measuringclassfiletransformer:constructor]
+public class MeasuringClassFileTransformer implements ClassFileTransformer {
+
+ ...
+
+ private final Config config;
+ private final Set<Pattern> whitelistPatterns;
+ private final Set<Pattern> blacklistPatterns;
+
+ public MeasuringClassFileTransformer(Config config) {
+  this.config = config;
+  this.whitelistPatterns = stringSetToPatternSet(config.getWhitelist());
+  this.blacklistPatterns = stringSetToPatternSet(config.getBlacklist());
+ }
+
+ ...
+
+ private Set<Pattern> stringSetToPatternSet(Set<String> stringSet) {
+  if (stringSet == null) {
+   return null;
+  }
+
+  return stringSet
+    .stream()
+    .map(Pattern::compile)
+    .collect(Collectors.toSet());
+ }
+}
+\end{lstlisting}
+
+\noindent \code{MeasuringClassFileTransformer} implements \code{interface} \code{java.lang.instrument.ClassFileTransformer}\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html} which implements method \code{transform} shown in Listing \ref{lis:measuringclassfiletransformer:transform}. By implementing this interface, \code{MetricAgent} can use \code{MeasuringClassFileTransformer} as one of its transformers and because of that each class being loaded in the JVM will pass through this transformer for optional instrumentation. This class' responsibility is to determine whether the class being loaded should be instrumented and if so to instrument it.
+
+\begin{lstlisting}[breaklines,caption={$MeasuringClassFileTransformer.transform$ implementation},label=lis:measuringclassfiletransformer:transform]
+$$@Override
+public byte[] transform(
+  ClassLoader loader,
+  String fullyQualifiedClassName,
+  Class<?> classBeingRedefined,
+  ProtectionDomain protectionDomain,
+  byte[] classfileBuffer) throws IllegalClassFormatException {
+ if (isClassExcludedByName(fullyQualifiedClassName)) {
+  return null;
+ }
+
+ String className = fullyQualifiedClassName.replace("/", ".");
+ CtClass ctClass = ClassPool.getDefault().get(className);
+ if (isClassExcludedByImplementation(ctClass)) {
+  return null;
+ }
+
+ declareAndInstantiateTimeRecorder(ctClass);
+
+ boolean isClassModified = instrumentMeasuredMethods(ctClass);
+ if (!isClassModified) {
+  return null;
+ }
+
+ return ctClass.toBytecode();
+}
+\end{lstlisting}
+
+
+\noindent The transformer first uses private method \code{isClassExcludedByName} to check whether the class should be excluded from instrumentation based on its fully qualified class name. As the documentation states, the name of the class passed in the method is in the internal form of fully qualified class names as defined in \textit{The Java Virtual Machine Specification} (e.g. \code{java/util/List}). A class will be excluded based on its fully qualified name if:
+\begin{itemize}
+  \item It's part of the standard Java library and the \code{excludeStandardJavaLibrary} configuration parameter is set to true, or
+  \item It's part of the standard Scala library and the \code{excludeStandardScalaLibrary} configuration parameter is set to true, or
+  \item It's part of the \code{javaassist} package or the \code{tech.dario.timecomplexityanalysis.timerecorder} package (this is to avoid instrumenting classes that are needed for instrumentation itself)
+\end{itemize}
+
+\noindent If the class is excluded, the method returns \code{null} which instruct the JVM that this class should be loaded without any instrumentation applied. Otherwise it loads the class from the default \code{ClassPool}\footnote{https://jboss-javassist.github.io/javassist/html/javassist/ClassPool.html} and uses private method \code{isClassExcludedByImplementation} to check whether the class should be excluded based on its implementation. In the context of instrumentation the term \enquote{class} is used in a more generic way and includes annotations, arrays, enums, interfaces and primitives too. \code{MeasuringClassFileTransformer} excludes any class that is not an actual class (i.e. defined with the \code{class} keyword) from instrumentation by returning \code{null}.
+
+\noindent Now the time recorder is declared and instantiated in the class by using the private method \code{declareAndInstantiateTimeRecorder}. It instruments the class by declaring a private, static and final field called \code{\_AGENT\_TIME\_RECORDER} as shown in Listing \ref{lis:measuringclassfiletransformer:agenttimerecorder}. Note that at this point the instrumented class is using the time recorder API to report time and is unaware of what the actual time recorder implementation is (see implementation in Section \ref{sec:implementation:timerecorderapi}).
+
+\begin{lstlisting}[breaklines,caption={$\_AGENT\_TIME\_RECORDER$ initialization},label=lis:measuringclassfiletransformer:agenttimerecorder]
+private final static tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorder _AGENT_TIME_RECORDER = tech.dario.timecomplexityanalysis.timerecorder.api.StaticTimeRecorderFactory.getTimeRecorder();
+\end{lstlisting}
+
+\noindent The whitelisted methods now get instrumented using the private method \code{instrumentMeasuredMethods}. For each method of each class that is not excluded, the agent uses the logic in Listing \ref{lis:measuringclassfiletransformer:ismethodmeasured} to determine whether the method should be instrumented. It finds the best-matching whitelist regex and the best-matching blacklist regex. The longer the match, the better and more targeted it is considered to be. If the best-matching whitelist regex is more targeted than the best-matching blacklist regex (or as targeted, i.e. whitelists have priority over blacklists) then the method is instrumented, otherwise it is not. If no matching regexes are found for the method, the same logic is applied on the method's class name. \noindent If a method is annotated with \code{@Measured}, it is always instrumented with no exceptions (blacklist regexes are ignored in this case). If a class is annotated with \code{@Measured}, each of its methods is instrumented unless explicitly blacklisted.
+
+\begin{lstlisting}[breaklines,caption={$MeasuringClassFileTransformer.isMethodMeasured$ implementation},label=lis:measuringclassfiletransformer:ismethodmeasured]
+private boolean isMethodMeasured(CtClass ctClass, CtMethod ctMethod) {
+ if (ctMethod.hasAnnotation(Measured.class)) {
+  return true;
+ }
+
+ InstrumentationStatus methodInstrumentationStatus = getInstrumentationStatus(ctMethod.getLongName());
+ if (methodInstrumentationStatus == InstrumentationStatus.WHITELISTED) {
+  return true;
+ }
+
+ if (methodInstrumentationStatus == InstrumentationStatus.BLACKLISTED) {
+  return false;
+ }
+
+ if (methodInstrumentationStatus == InstrumentationStatus.INDIFFERENT) {
+  if (ctClass.hasAnnotation(Measured.class)) {
+   return true;
+  }
+
+  InstrumentationStatus classInstrumentationStatus = getInstrumentationStatus(ctClass.getName());
+  if (classInstrumentationStatus == InstrumentationStatus.WHITELISTED) {
+   return true;
+  }
+
+  if (classInstrumentationStatus == InstrumentationStatus.BLACKLISTED) {
+   return false;
+  }
+ }
+    
+ return false;
+}
+
+private InstrumentationStatus getInstrumentationStatus(String entityName) {
+ int bestWhitelistMatch = findBestMatchingPatternLength(entityName, whitelistPatterns);
+ int bestBlacklistMatch = findBestMatchingPatternLength(entityName, blacklistPatterns);
+ if (bestWhitelistMatch == 0 && bestBlacklistMatch == 0) {
+  return InstrumentationStatus.INDIFFERENT;
+ }
+
+ if (bestBlacklistMatch > bestWhitelistMatch) {
+  return InstrumentationStatus.BLACKLISTED;
+ }
+
+ return InstrumentationStatus.WHITELISTED;
+}
+
+private int findBestMatchingPatternLength(final String input, final Set<Pattern> patternsSet) {
+ return patternsSet
+   .stream()
+   .map(pattern -> pattern.matcher(input))
+   .filter(Matcher::find)
+   .map(matcher -> matcher.group(0).length())
+   .mapToInt(i -> i)
+   .max()
+   .orElse(0);
+}
+\end{lstlisting}
+
+\noindent When a method is elected for instrumentation, its implementation is changed by timing it and reporting the time taken in nanoseconds and the thread \code{StackTrace} to the time reporter just before the method returns. Listing \ref{lis:measuringclassfiletransformer:methodinstrumentationexample} shows an example of instrumented method. Note that the \code{@Measured} annotation could have already been there because specified by the end user, but it is also added by the transformer as the time recorder implementation will need to know what methods are instrumented in order to build the call graph (see Section \ref{sec:implementation:timerecorderimplementation}).
+
+\begin{lstlisting}[breaklines,caption={Method instrumentation example},label=lis:measuringclassfiletransformer:methodinstrumentationexample]
+$$@Measured
+public void myMethod() {
+ StackTraceElement[] _agent_stackTrace = Thread.currentThread().getStackTrace();
+ long _agent_startTime = System.nanoTime();
+
+ // Original implementation here
+
+ _AGENT_TIME_RECORDER.reportTime(System.nanoTime() - _agent_startTime, _agent_stackTrace);
+}
+\end{lstlisting}
+
+
+\noindent The private method \code{instrumentMeasuredMethods} mentioned above returns a boolean indicating whether any of the methods in the class have been instrumented. If no methods have been instrumented, the \code{transform} method returns \code{null} meaning that the original instrumentation done in private method \code{declareAndInstantiateTimeRecorder} is undone.
+
+\subsection{Limitations}
+\label{sec:implementation:agent:limitations}
+Some classes are pre-loaded in the JVM, such as some of the classes that are part of the Java standard library. Because they're pre-loaded, these classes don't go though the transformer and for that reason are never instrumented. Java could retransform pre-loaded classes but the documentation\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html} states:
+
+\enquote{The retransformation must not add, remove or rename fields or methods, change the signatures of methods, or change inheritance}
+
+\noindent Because \code{MeasuringClassFileTransformer} adds a field \code{\_AGENT\_TIME\_RECORDER}, retrasformation is not allowed and as a consequence any pre-loaded classes cannot be analysed.
 
 \section{Time recorder API}
+\label{sec:implementation:timerecorderapi}
 
 TODO
 
 
 \section{Time recorder implementation}
+\label{sec:implementation:timerecorderimplementation}
 
 TODO
 
