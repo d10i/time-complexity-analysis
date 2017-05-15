@@ -1,8 +1,6 @@
 package tech.dario.timecomplexityanalysis.sdk.mappers;
 
 import org.apache.commons.math3.distribution.TDistribution;
-import tech.dario.timecomplexityanalysis.sdk.domain.AggregatedMetrics;
-import tech.dario.timecomplexityanalysis.sdk.domain.Probe;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.AbstractNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
@@ -12,34 +10,30 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class MetricsListNodeAggregator<T extends AbstractNode<MetricsList, T>> implements Function<T, MergeableNode<AggregatedMetrics>> {
+public class MetricsListNodeCleaner<T extends AbstractNode<MetricsList, T>> implements Function<T, MergeableNode<MetricsList>> {
 
-  private final long n;
-  private final Probe probe;
+  private final int numMaxOutliers;
 
-  public MetricsListNodeAggregator(long n, Probe probe) {
-    this.n = n;
-    this.probe = probe;
+  public MetricsListNodeCleaner(final int numMaxOutliers) {
+    this.numMaxOutliers = numMaxOutliers;
   }
 
   @Override
-  public MergeableNode<AggregatedMetrics> apply(T node) {
+  public MergeableNode<MetricsList> apply(T node) {
     if (node.getData() == null) {
       return new MergeableNode<>(node.getName(), null);
     }
 
     final List<Metrics> metricsList = node.getData().getList();
     final List<Metrics> metricsListWithoutOutliers = removeOutliers(metricsList);
-    final Metrics averageMetrics = computeAverageMetrics(metricsListWithoutOutliers);
-
-    return new MergeableNode<>(node.getName(), new AggregatedMetrics(n, averageMetrics));
+    return new MergeableNode<>(node.getName(), new MetricsList(metricsListWithoutOutliers));
   }
 
   private List<Metrics> removeOutliers(List<Metrics> metricsList) {
     // Using generalized extreme Studentized deviate (ESD)
     // See: http://www.itl.nist.gov/div898/handbook/eda/section3/eda35h3.htm
     double[] xs = metricsList.stream().map(Metrics::getTotal).mapToDouble(m -> m).toArray();
-    if(xs.length <= probe.getNumMaxOutliers()) {
+    if(xs.length <= numMaxOutliers) {
       return metricsList;
     }
 
@@ -48,7 +42,7 @@ public class MetricsListNodeAggregator<T extends AbstractNode<MetricsList, T>> i
     double validRangeMin = min(xs);
     double validRangeMax = max(xs);
 
-    for (int i = 1; i <= probe.getNumMaxOutliers(); i++) {
+    for (int i = 1; i <= numMaxOutliers; i++) {
       double avg = avg(xs);
       double stdev = stdev(avg, xs);
       int mostOutlyingIndex = mostOutlyingIndex(avg, xs);
@@ -72,11 +66,11 @@ public class MetricsListNodeAggregator<T extends AbstractNode<MetricsList, T>> i
     final double finalValidRangeMax = validRangeMax;
 
     return metricsList
-            .stream()
-            .filter(
-                    m -> m.getTotal() >= finalValidRangeMin && m.getTotal() <= finalValidRangeMax
-            )
-            .collect(Collectors.toList());
+        .stream()
+        .filter(
+            m -> m.getTotal() >= finalValidRangeMin && m.getTotal() <= finalValidRangeMax
+        )
+        .collect(Collectors.toList());
   }
 
   private double avg(double[] xs) {
@@ -138,17 +132,5 @@ public class MetricsListNodeAggregator<T extends AbstractNode<MetricsList, T>> i
     }
 
     return mostOutlyingIndex;
-  }
-
-  private Metrics computeAverageMetrics(List<Metrics> metricsList) {
-    final int numMetrics = metricsList.size();
-    double countSum = 0.0d;
-    double totalSum = 0.0d;
-    for (Metrics metrics : metricsList) {
-      countSum += metrics.getCount();
-      totalSum += metrics.getTotal();
-    }
-
-    return new Metrics(countSum / numMetrics, totalSum / numMetrics);
   }
 }

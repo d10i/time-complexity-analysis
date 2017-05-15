@@ -25,7 +25,6 @@ public class MetricsNodeNormaliserTest {
     // 3d:      {tech.dario.timecomplexityanalysis.testalgorithm.Linearithmic.average: {count: 1.0, tot: 38,795,069.0 ns, avg: 38,795,069.0 ns}}
     // 3e:      {tech.dario.timecomplexityanalysis.testalgorithm.Constant.slow: {count: 1.0, tot: 96,811,459.0 ns, avg: 96,811,459.0 ns}}
 
-
     // Input tree
     MergeableTree<Metrics> tree = new MergeableTree<>();
     MergeableNode<Metrics> node1a = new MergeableNode<>("tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm.doTask", new Metrics(1.0d, 2428897020.0d));
