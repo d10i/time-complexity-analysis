@@ -12,20 +12,8 @@ public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, 
     super(name, data);
   }
 
-  public void add(T data, MeasuredStackTraceElements measuredStackTraceElements) {
-    if (measuredStackTraceElements.size() == 0) {
-      mergeData(data);
-      return;
-    }
-
-    String lastElement = measuredStackTraceElements.getLastElement();
-    if (hasChild(lastElement)) {
-      getChild(lastElement).add(data, measuredStackTraceElements.withLastElementRemoved());
-    } else {
-      MergeableNode<T> newNode = new MergeableNode<>(lastElement);
-      newNode.add(data, measuredStackTraceElements.withLastElementRemoved());
-      add(newNode);
-    }
+  public void addData(T data) {
+    mergeData(data);
   }
 
   @Override

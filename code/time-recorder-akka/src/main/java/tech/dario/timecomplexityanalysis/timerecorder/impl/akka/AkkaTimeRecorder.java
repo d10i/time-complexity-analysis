@@ -1,8 +1,6 @@
 package tech.dario.timecomplexityanalysis.timerecorder.impl.akka;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
+import akka.actor.*;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.Config;
@@ -41,7 +39,7 @@ public class AkkaTimeRecorder implements TimeRecorder {
       Config config = ConfigFactory.parseString(
               "akka {\n" +
                       "\n" +
-                      "  version = \"2.4.17\"\n" +
+                      "  version = \"2.5.2\"\n" +
                       "\n" +
                       "  loggers = [\"akka.event.slf4j.Slf4jLogger\"]\n" +
                       "\n" +
@@ -99,8 +97,13 @@ public class AkkaTimeRecorder implements TimeRecorder {
   }
 
   @Override
-  public void reportTime(long elapsedTime, StackTraceElement[] stackTrace) {
-    service.tell(new TimeReport(elapsedTime, stackTrace), ActorRef.noSender());
+  public void methodStarted(String methodLongName) {
+    service.tell(new MethodStarted(methodLongName, System.nanoTime()), ActorRef.noSender());
+  }
+
+  @Override
+  public void methodFinished(String methodLongName) {
+    service.tell(new MethodFinished(methodLongName, System.nanoTime()), ActorRef.noSender());
   }
 
   @Override

@@ -4,13 +4,13 @@ import org.apache.commons.math3.distribution.TDistribution;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.AbstractNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.MetricsList;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableList;
 
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class MetricsListNodeCleaner<T extends AbstractNode<MetricsList, T>> implements Function<T, MergeableNode<MetricsList>> {
+public class MetricsListNodeCleaner<T extends AbstractNode<MergeableList<Metrics>, T>> implements Function<T, MergeableNode<MergeableList<Metrics>>> {
 
   private final int numMaxOutliers;
 
@@ -19,14 +19,14 @@ public class MetricsListNodeCleaner<T extends AbstractNode<MetricsList, T>> impl
   }
 
   @Override
-  public MergeableNode<MetricsList> apply(T node) {
+  public MergeableNode<MergeableList<Metrics>> apply(T node) {
     if (node.getData() == null) {
       return new MergeableNode<>(node.getName(), null);
     }
 
     final List<Metrics> metricsList = node.getData().getList();
     final List<Metrics> metricsListWithoutOutliers = removeOutliers(metricsList);
-    return new MergeableNode<>(node.getName(), new MetricsList(metricsListWithoutOutliers));
+    return new MergeableNode<>(node.getName(), new MergeableList<>(metricsListWithoutOutliers));
   }
 
   private List<Metrics> removeOutliers(List<Metrics> metricsList) {

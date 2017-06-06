@@ -30,6 +30,7 @@ public abstract class AbstractNode<T, S extends AbstractNode<T, S>> {
   }
 
   public <T2, S2 extends AbstractNode<T2, S2>> S2 map(Function<? super S, ? extends S2> mapper) {
+    // BFS
     Queue<NodesPair<T, S, T2, S2>> queue = new LinkedList<>();
 
     S2 newRootNode = mapper.apply((S)this);

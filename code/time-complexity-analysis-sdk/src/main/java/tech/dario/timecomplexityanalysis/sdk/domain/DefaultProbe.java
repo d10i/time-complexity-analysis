@@ -22,6 +22,6 @@ public class DefaultProbe implements Probe {
 
   @Override
   public Iterator<Long> buildNIterator() {
-    return new LinearIterator(8, 1000);
+    return new LinearIterator(10, 429);
   }
 }

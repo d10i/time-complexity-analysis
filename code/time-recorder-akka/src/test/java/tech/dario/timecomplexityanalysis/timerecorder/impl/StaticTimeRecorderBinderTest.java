@@ -9,7 +9,8 @@ public class StaticTimeRecorderBinderTest {
   @Test
   public void test() throws Exception {
     _AGENT_TIME_RECORDER.start();
-    _AGENT_TIME_RECORDER.reportTime(100, Thread.currentThread().getStackTrace());
+    _AGENT_TIME_RECORDER.methodStarted("tech.dario.timecomplexityanalysis.timerecorder.impl.StaticTimeRecorderBinderTest.test()");
+    _AGENT_TIME_RECORDER.methodFinished("tech.dario.timecomplexityanalysis.timerecorder.impl.StaticTimeRecorderBinderTest.test()");
     _AGENT_TIME_RECORDER.stop();
   }
 }

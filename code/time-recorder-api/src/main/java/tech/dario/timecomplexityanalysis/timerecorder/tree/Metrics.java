@@ -2,7 +2,6 @@ package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Collection;
 
 public class Metrics implements MergeableValue<Metrics> {
   private double count;

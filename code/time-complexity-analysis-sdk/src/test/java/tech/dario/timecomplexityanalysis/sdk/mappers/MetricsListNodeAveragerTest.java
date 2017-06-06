@@ -4,7 +4,7 @@ import org.junit.Test;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableTree;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.MetricsList;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableList;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,9 +32,9 @@ public class MetricsListNodeAveragerTest {
         new Metrics(1.0d, 3680000.0d), new Metrics(1.0d, 4300000.0d), new Metrics(1.0d, 4640000.0d)
     );
 
-    final MetricsList metricsList = new MetricsList(list);
-    final MergeableNode<MetricsList> metricsListNode = new MergeableNode<>("root", metricsList);
-    final MergeableTree<MetricsList> metricsListTree = new MergeableTree<>(metricsListNode);
+    final MergeableList<Metrics> metricsList = new MergeableList<>(list);
+    final MergeableNode<MergeableList<Metrics>> metricsListNode = new MergeableNode<>("root", metricsList);
+    final MergeableTree<MergeableList<Metrics>> metricsListTree = new MergeableTree<>(metricsListNode);
     final Metrics actualMetrics = metricsListTree.map(MergeableTree::new, new MetricsListNodeAverager<>()).getRootNode().getData();
 
     assertEquals("Expected correct count", 1.0d, actualMetrics.getCount(), 0.0000001d);

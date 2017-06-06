@@ -3,12 +3,12 @@ package tech.dario.timecomplexityanalysis.sdk.mappers;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.AbstractNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.MetricsList;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableList;
 
 import java.util.List;
 import java.util.function.Function;
 
-public class MetricsListNodeAverager<T extends AbstractNode<MetricsList, T>> implements Function<T, MergeableNode<Metrics>> {
+public class MetricsListNodeAverager<T extends AbstractNode<MergeableList<Metrics>, T>> implements Function<T, MergeableNode<Metrics>> {
   @Override
   public MergeableNode<Metrics> apply(T node) {
     if (node.getData() == null) {

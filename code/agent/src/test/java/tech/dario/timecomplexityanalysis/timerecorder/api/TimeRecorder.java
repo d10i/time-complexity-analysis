@@ -1,7 +1,11 @@
 package tech.dario.timecomplexityanalysis.timerecorder.api;
 
 public class TimeRecorder {
-  public void reportTime(long elapsedTime, StackTraceElement[] stackTrace) {
+  public void methodStarted(String methodLongName) {
+
+  }
+
+  public void methodFinished(String methodLongName) {
 
   }
 }

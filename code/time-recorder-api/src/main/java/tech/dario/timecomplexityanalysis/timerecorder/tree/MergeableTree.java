@@ -14,8 +14,4 @@ public class MergeableTree<T extends MergeableValue<T>> extends AbstractTree<T, 
   public MergeableTree<T> mergeWith(MergeableTree<T> mergeableTree) {
     return new MergeableTree<>(getRootNode().mergeWith(mergeableTree != null ? mergeableTree.getRootNode() : null));
   }
-
-  public void add(T data, MeasuredStackTraceElements measuredStackTraceElements) {
-    rootNode.add(data, measuredStackTraceElements);
-  }
 }

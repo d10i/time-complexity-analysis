@@ -157,20 +157,8 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
   }
 
   private void instrumentMethod(CtClass ctClass, CtMethod ctMethod) throws CannotCompileException, NotFoundException {
-    ctMethod.addLocalVariable("_agent_startTime", CtClass.longType);
-    ctMethod.insertBefore("_agent_startTime = System.nanoTime();");
-
-    ctMethod.addLocalVariable("_agent_stackTrace", classPool.get(StackTraceElement[].class.getName()));
-    ctMethod.insertBefore("_agent_stackTrace = Thread.currentThread().getStackTrace();");
-
-    ctMethod.insertAfter("_AGENT_TIME_RECORDER.reportTime(System.nanoTime() - _agent_startTime, _agent_stackTrace);");
-
-    final ConstPool constpool = ctClass.getClassFile().getConstPool();
-    final AnnotationsAttribute attr = new AnnotationsAttribute(constpool, AnnotationsAttribute.visibleTag);
-    final Annotation annotation = new Annotation("tech.dario.timecomplexityanalysis.annotations.Measured", constpool);
-    attr.addAnnotation(annotation);
-    ctMethod.getMethodInfo().addAttribute(attr);
-
+    ctMethod.insertBefore("_AGENT_TIME_RECORDER.methodStarted(\"" + ctMethod.getLongName() + "\");");
+    ctMethod.insertAfter("_AGENT_TIME_RECORDER.methodFinished(\"" + ctMethod.getLongName() + "\");");
     LOGGER.debug("Instrumented method {}", ctMethod.getLongName());
   }
 

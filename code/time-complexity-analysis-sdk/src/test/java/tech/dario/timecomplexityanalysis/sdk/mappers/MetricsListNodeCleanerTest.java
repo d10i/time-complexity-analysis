@@ -4,7 +4,7 @@ import org.junit.Test;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableTree;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.MetricsList;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableList;
 
 import java.util.Arrays;
 import java.util.List;
@@ -51,10 +51,10 @@ public class MetricsListNodeCleanerTest {
         new Metrics(1.0d, 3680000.0d), new Metrics(1.0d, 4300000.0d), new Metrics(1.0d, 4640000.0d)
     );
 
-    final MetricsList metricsList = new MetricsList(list);
-    final MergeableNode<MetricsList> metricsListNode = new MergeableNode<>("root", metricsList);
-    final MergeableTree<MetricsList> metricsListTree = new MergeableTree<>(metricsListNode);
-    final MetricsList actualMetrics = metricsListTree.map(MergeableTree::new, new MetricsListNodeCleaner<>(10)).getRootNode().getData();
+    final MergeableList<Metrics> metricsList = new MergeableList<>(list);
+    final MergeableNode<MergeableList<Metrics>> metricsListNode = new MergeableNode<>("root", metricsList);
+    final MergeableTree<MergeableList<Metrics>> metricsListTree = new MergeableTree<>(metricsListNode);
+    final MergeableList<Metrics> actualMetrics = metricsListTree.map(MergeableTree::new, new MetricsListNodeCleaner<>(10)).getRootNode().getData();
 
     assertEquals("Expected correct size", list.size() - 3, actualMetrics.getList().size(), 0.0000001d);
     assertThat("Expected correct list", actualMetrics.getList(), is(expected));
