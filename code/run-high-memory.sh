@@ -4,6 +4,10 @@ java \
 	-XX:+PrintGCDateStamps \
 	-XX:+PrintTenuringDistribution \
 	-XX:+PrintGCApplicationStoppedTime \
-	-Xmx4096m \
-	-Xms2048m \
+	-Xmx8192m \
+	-Xms4096m \
+	-Xmn4096m \
+	-XX:PermSize=512m \
+	-XX:MaxPermSize=512m \
+	-javaagent:agent/target/agent-fat.jar=config.json \
 	-jar ./time-complexity-analyser/target/time-complexity-analyser-1.0-SNAPSHOT-fat.jar
