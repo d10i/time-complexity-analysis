@@ -16,7 +16,7 @@ public class AkkaTimeRecorderFactory implements TimeRecorderFactory {
   public TimeRecorder getTimeRecorder() {
     synchronized (AkkaTimeRecorderFactory.class) {
       if (timeRecorder == null) {
-        timeRecorder = new AkkaTimeRecorder();
+        timeRecorder = new AkkaTimeRecorder(1000);
       }
 
       return timeRecorder;

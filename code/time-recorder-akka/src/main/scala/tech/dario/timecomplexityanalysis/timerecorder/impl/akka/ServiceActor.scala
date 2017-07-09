@@ -12,7 +12,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class ServiceActor extends Actor with ActorLogging {
-  private final val NumRoutees = 2 // TODO? num cores - 2
+  private final val NumRoutees = 8 // TODO? num cores - 2
   private final implicit val SaveTimeout = Timeout(60 seconds)
 
   private val routees = Vector.fill(NumRoutees) {
@@ -30,11 +30,9 @@ class ServiceActor extends Actor with ActorLogging {
   }
 
   override def receive = {
-    case methodStarted: MethodStarted =>
-      router.route(methodStarted, sender())
-
-    case methodFinished: MethodFinished =>
-      router.route(methodFinished, sender())
+    case methodActions: MethodActions =>
+      //println(s"Received ${methodActionsArray.toList}")
+      router.route(methodActions, sender())
 
     case s: Save =>
       log.debug("Received Save message")

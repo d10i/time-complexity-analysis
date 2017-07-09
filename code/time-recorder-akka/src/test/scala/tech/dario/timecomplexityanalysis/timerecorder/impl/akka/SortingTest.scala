@@ -3,11 +3,11 @@ package tech.dario.timecomplexityanalysis.timerecorder.impl.akka
 import org.scalatest._
 
 class SortingTest extends FlatSpec with Matchers {
-  "A Stack" should "lol" in {
-    val l1: List[MethodAction] = List.fill(2000000)(if (scala.util.Random.nextInt % 2 == 0) { MethodStarted("1", scala.util.Random.nextInt) } else { MethodFinished("2", scala.util.Random.nextInt) })
-    val l2: List[MethodAction] = List.fill(4000000)(if (scala.util.Random.nextInt % 2 == 0) { MethodStarted("3", scala.util.Random.nextInt) } else { MethodFinished("4", scala.util.Random.nextInt) })
-    val l3: List[MethodAction] = List.fill(8000000)(if (scala.util.Random.nextInt % 2 == 0) { MethodStarted("5", scala.util.Random.nextInt) } else { MethodFinished("6", scala.util.Random.nextInt) })
-    val l4: List[MethodAction] = List.fill(16000000)(if (scala.util.Random.nextInt % 2 == 0) { MethodStarted("7", scala.util.Random.nextInt) } else { MethodFinished("8", scala.util.Random.nextInt) })
+  "Sorting" should "be quick" in {
+    val l1: List[MethodAction] = List.fill(200000)(if (scala.util.Random.nextInt % 2 == 0) { MethodStarted("1", scala.util.Random.nextInt) } else { MethodFinished("2", scala.util.Random.nextInt) })
+    val l2: List[MethodAction] = List.fill(400000)(if (scala.util.Random.nextInt % 2 == 0) { MethodStarted("3", scala.util.Random.nextInt) } else { MethodFinished("4", scala.util.Random.nextInt) })
+    val l3: List[MethodAction] = List.fill(800000)(if (scala.util.Random.nextInt % 2 == 0) { MethodStarted("5", scala.util.Random.nextInt) } else { MethodFinished("6", scala.util.Random.nextInt) })
+    val l4: List[MethodAction] = List.fill(1600000)(if (scala.util.Random.nextInt % 2 == 0) { MethodStarted("7", scala.util.Random.nextInt) } else { MethodFinished("8", scala.util.Random.nextInt) })
 
     def time[A](f: => A) = {
       val s = System.nanoTime

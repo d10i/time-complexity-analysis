@@ -21,61 +21,73 @@ class ServiceActorTest() extends TestKit(ActorSystem("ServiceActor")) with Impli
     "fail with method actions missing" in {
       implicit val timeout = Timeout(10.seconds)
 
-      val service = system.actorOf(Props.create(classOf[ServiceActor]), "service")
+      val service = system.actorOf(Props.create(classOf[ServiceActor]), "test1")
 
-      service ! MethodStarted("Method1", 100)
-      service ! MethodStarted("Method2", 200)
-      service ! MethodStarted("Method3", 300)
-      service ! MethodFinished("Method3", 400)
-      service ! MethodFinished("Method2", 500)
+      service ! MethodActions(
+        MethodStarted("Method1", 100),
+        MethodStarted("Method2", 200),
+        MethodStarted("Method3", 300),
+        MethodFinished("Method3", 400),
+        MethodFinished("Method2", 500)
+      )
 
       val treeFuture = service ? Save()
       try {
         Await.result(treeFuture, timeout.duration).asInstanceOf[MergeableTree[Metrics]]
+        fail("Should have thrown exception")
       } catch {
-        case iae: IllegalArgumentException => iae.getMessage should be ("Finished processing list but current node is not 'root'. Some actions are probably missing from the list.")
+        case iae: IllegalArgumentException => iae.getMessage should be("Finished processing list but current node is not 'root'. Some actions are probably missing from the list.")
+        case _: Exception => fail("Should have thrown IllegalArgumentException")
       }
     }
 
     "fail with not-matching method actions" in {
       implicit val timeout = Timeout(10.seconds)
 
-      val service = system.actorOf(Props.create(classOf[ServiceActor]), "service")
+      val service = system.actorOf(Props.create(classOf[ServiceActor]), "test2")
 
-      service ! MethodStarted("Method1", 100)
-      service ! MethodStarted("Method2", 200)
-      service ! MethodStarted("Method3", 300)
-      service ! MethodFinished("Method2", 400)
-      service ! MethodFinished("Method3", 500)
-      service ! MethodFinished("Method1", 600)
+      service ! MethodActions(
+        MethodStarted("Method1", 100),
+        MethodStarted("Method2", 200),
+        MethodStarted("Method3", 300),
+        MethodFinished("Method2", 400),
+        MethodFinished("Method3", 500),
+        MethodFinished("Method1", 600)
+      )
 
       val treeFuture = service ? Save()
       try {
         Await.result(treeFuture, timeout.duration).asInstanceOf[MergeableTree[Metrics]]
+        fail("Should have thrown exception")
       } catch {
-        case iae: IllegalArgumentException => iae.getMessage should be ("Received MethodFinished(Method2,400) but was expecting a MethodFinished action with name 'Method3']")
+        case iae: IllegalArgumentException => iae.getMessage should be("Received MethodFinished(Method2,400) but was expecting a MethodFinished action with name 'Method3'")
+        case _: Exception => fail("Should have thrown IllegalArgumentException")
       }
     }
 
     "tranform the received method actions into a call tree" in {
       implicit val timeout = Timeout(10.seconds)
 
-      val service = system.actorOf(Props.create(classOf[ServiceActor]), "service")
+      val service = system.actorOf(Props.create(classOf[ServiceActor]), "test3")
 
-      service ! MethodStarted("Method1", 100)
-      service ! MethodStarted("Method2", 200)
-      service ! MethodStarted("Method3", 300)
-      service ! MethodFinished("Method3", 400)
-      service ! MethodStarted("Method4", 500)
-      service ! MethodStarted("Method5", 600)
-      service ! MethodFinished("Method5", 700)
-      service ! MethodFinished("Method4", 800)
-      service ! MethodStarted("Method3", 900)
-      service ! MethodFinished("Method3", 1000)
-      service ! MethodStarted("Method5", 1100)
-      service ! MethodFinished("Method5", 1199)
-      service ! MethodFinished("Method2", 1300)
-      service ! MethodFinished("Method1", 1400)
+      service ! MethodActions(
+        MethodStarted("Method1", 100),
+        MethodStarted("Method2", 200),
+        MethodStarted("Method3", 300),
+        MethodFinished("Method3", 400),
+        MethodStarted("Method4", 500),
+        MethodStarted("Method5", 600),
+        MethodFinished("Method5", 700),
+        MethodFinished("Method4", 800),
+        MethodStarted("Method3", 900)
+      )
+      service ! MethodActions(
+        MethodFinished("Method3", 1000),
+        MethodStarted("Method5", 1100),
+        MethodFinished("Method5", 1199),
+        MethodFinished("Method2", 1300),
+        MethodFinished("Method1", 1400)
+      )
 
       val treeFuture = service ? Save()
 
@@ -89,7 +101,7 @@ class ServiceActorTest() extends TestKit(ActorSystem("ServiceActor")) with Impli
       expectedTree.add(node1a)
 
       val result = Await.result(treeFuture, timeout.duration).asInstanceOf[MergeableTree[Metrics]]
-      result should be (expectedTree)
+      result should be(expectedTree)
     }
   }
 }

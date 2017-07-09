@@ -1,12 +1,12 @@
 package tech.dario.timecomplexityanalysis.timerecorder.impl.akka
 
 import akka.actor.{ActorSystem, PoisonPill}
-import akka.dispatch.{PriorityGenerator, UnboundedStablePriorityMailbox}
+import akka.dispatch.{PriorityGenerator, UnboundedPriorityMailbox}
 import com.typesafe.config.Config
 
-class PriorityMailbox(settings: ActorSystem.Settings, config: Config) extends UnboundedStablePriorityMailbox(
+class PriorityMailbox(settings: ActorSystem.Settings, config: Config) extends UnboundedPriorityMailbox(
   PriorityGenerator {
-    case MethodStarted(_, _) | MethodFinished(_, _) => 1
+    case MethodActions(_) => 1
 
     case Save() => 2
 

@@ -14,6 +14,8 @@ import tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorder;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableTree;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
 
+import java.util.ArrayList;
+
 public class AkkaTimeRecorder implements TimeRecorder {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AkkaTimeRecorder.class);
@@ -21,6 +23,13 @@ public class AkkaTimeRecorder implements TimeRecorder {
   private ActorSystem actorSystem;
   private ActorRef service;
   private static boolean started;
+  private ArrayList<MethodAction> list;
+
+  private final int bufferSize;
+
+  public AkkaTimeRecorder(int bufferSize) {
+    this.bufferSize = bufferSize;
+  }
 
   public static void init() {
     LOGGER.info("Initialising AkkaTimeRecorder");
@@ -41,11 +50,11 @@ public class AkkaTimeRecorder implements TimeRecorder {
                       "\n" +
                       "  version = \"2.5.2\"\n" +
                       "\n" +
-                      "  loggers = [\"akka.event.slf4j.Slf4jLogger\"]\n" +
+                      "  loggers = []\n" +
                       "\n" +
-                      "  loglevel = \"DEBUG\"\n" +
+                      "  loglevel = \"OFF\"\n" +
                       "\n" +
-                      "  stdout-loglevel = \"DEBUG\"\n" +
+                      "  stdout-loglevel = \"OFF\"\n" +
                       "\n" +
                       "  log-config-on-start = off\n" +
                       "\n" +
@@ -56,39 +65,19 @@ public class AkkaTimeRecorder implements TimeRecorder {
                       "    }\n" +
                       "\n" +
                       "    default-dispatcher {\n" +
-                      "      # Throughput defines the number of messages that are processed in a batch\n" +
-                      "      # before the thread is returned to the pool. Set to 1 for as fair as possible.\n" +
-                      "      throughput = 10\n" +
-                      "    }\n" +
-                      "\n" +
-                      "    debug {\n" +
-                      "      # enable function of Actor.loggable(), which is to log any received message\n" +
-                      "      # at DEBUG level, see the “Testing Actor Systems” section of the Akka\n" +
-                      "      # Documentation at http:#akka.io/docs\n" +
-                      "      receive = off\n" +
-                      "\n" +
-                      "      # enable DEBUG logging of all AutoReceiveMessages (Kill, PoisonPill et.c.)\n" +
-                      "      autoreceive = off\n" +
-                      "\n" +
-                      "      # enable DEBUG logging of actor lifecycle changes\n" +
-                      "      lifecycle = off\n" +
-                      "\n" +
-                      "      # enable DEBUG logging of all LoggingFSMs for events, transitions and timers\n" +
-                      "      fsm = off\n" +
-                      "\n" +
-                      "      # enable DEBUG logging of subscription changes on the eventStream\n" +
-                      "      event-stream = off\n" +
-                      "\n" +
-                      "      # enable DEBUG logging of unhandled messages\n" +
-                      "      unhandled = off\n" +
-                      "\n" +
-                      "      # enable WARN logging of misconfigured routers\n" +
-                      "      router-misconfiguration = off\n" +
+                      "      fork-join-executor {\n"+
+                      "        parallelism-min = 1\n"+
+                      "        parallelism-factor = 1\n"+
+                      "        parallelism-max = 1\n"+
+                      "      }\n"+
+                      "      throughput = 10000\n" +
                       "    }\n" +
                       "  }\n" +
                       "}\n"
       ).withFallback(ConfigFactory.load());
       actorSystem = ActorSystem.create("ServiceActorSystem", config);
+
+      list = new ArrayList<>(bufferSize);
 
       service = actorSystem.actorOf(Props.create(ServiceActor.class), "service");
       LOGGER.info("Started {}", this);
@@ -98,18 +87,26 @@ public class AkkaTimeRecorder implements TimeRecorder {
 
   @Override
   public void methodStarted(String methodLongName) {
-    service.tell(new MethodStarted(methodLongName, System.nanoTime()), ActorRef.noSender());
+    list.add(new MethodStarted(methodLongName, System.nanoTime()));
+    if (list.size() == bufferSize) {
+      flushList();
+    }
   }
 
   @Override
   public void methodFinished(String methodLongName) {
-    service.tell(new MethodFinished(methodLongName, System.nanoTime()), ActorRef.noSender());
+    list.add(new MethodFinished(methodLongName, System.nanoTime()));
+    if (list.size() == bufferSize) {
+      flushList();
+    }
   }
 
   @Override
   public MergeableTree<Metrics> stop() throws Exception {
     synchronized (AkkaTimeRecorder.class) {
       LOGGER.info("Stopping {}", this);
+
+      flushList();
 
       Timeout timeout = new Timeout(Duration.create(60, "seconds"));
       Future<Object> future = Patterns.ask(service, new Save(), timeout);
@@ -129,5 +126,10 @@ public class AkkaTimeRecorder implements TimeRecorder {
   @Override
   public String toString() {
     return "AkkaTimeRecorder{}";
+  }
+
+  private void flushList() {
+    service.tell(MethodActions$.MODULE$.apply(list), ActorRef.noSender());
+    list = new ArrayList<>(bufferSize);
   }
 }
