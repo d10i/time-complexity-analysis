@@ -68,39 +68,6 @@ The agent can be configured with four different parameters:
   \item \textbf{\code{excludeStandardScalaLibrary}}:  a flag indicating whether to exclude classes that are part of the standard Scala library\footnote{\code{scala} package}. Default: \code{true}
 \end{enumerate}
 
-\noindent The \code{Config} class stores this four parameters immutably in memory and has utility static methods to create an instance from a JSON file path or to get the default config. To quickly parse a JSON configuration file it uses Jackson\footnote{http://wiki.fasterxml.com/JacksonHome} as shown in Listing \ref{lis:jsonunmarshalling}. Jackson is a popular Java library for fast JSON marshalling and unmarshalling. The \code{@JsonCreator} annotation informs Jackson to use that constructor to instantiate a new instance of \code{Config} while the \code{@JsonProperty} annotation describes the name of the fields to look for in the JSON file.
-
-\begin{lstlisting}[breaklines,caption={JSON unmarshalling in $Config$},label=lis:jsonunmarshalling]
-public final class Config {
- private final Set<String> whitelist;
- private final Set<String> blacklist;
- private final Boolean excludeStandardJavaLibrary;
- private final Boolean excludeStandardScalaLibrary;
-
- $$@JsonCreator
- public Config(
-   %%@JsonProperty%%("whitelist") final Set<String> whitelist,
-   %%@JsonProperty%%("blacklist") final Set<String> blacklist,
-   %%@JsonProperty%%("excludeStandardJavaLibrary") final Boolean excludeStandardJavaLibrary,
-   %%@JsonProperty%%("excludeStandardScalaLibrary") final Boolean excludeStandardScalaLibrary) {
-  this.whitelist = whitelist;
-  this.blacklist = blacklist;
-  this.excludeStandardJavaLibrary = excludeStandardJavaLibrary;
-  this.excludeStandardScalaLibrary = excludeStandardScalaLibrary;
- }
-
- ...
-
- public static Config fromJsonFile(final File file) throws IOException {
-  ...
-  final ObjectMapper mapper = new ObjectMapper();
-  return mapper.readValue(file, Config.class);
- }
-
- ...
-}
-\end{lstlisting}
-
 \noindent Listing \ref{lis:config1} shows an example of configuration which instructs the agent to insturment any method in the \code{tech.dario.timecomplexityanalysis.testalgorithm} package, excluding any method starting with \code{get}. The regexes specified in the \code{whitelist} and \code{blacklist} parameters should be in a format accepted by the \code{compile} method of \code{java.util.regex.Pattern}\footnote{https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html}. For example, method \code{tech.dario.timecomplexityanalysis.testalgorithm.MyClass.getName()} is both whitelisted and blacklisted. The whitelist regex matches \code{tech.dario.timecomplexityanalysis.testalgorithm} while the blacklist element matches \code{tech.dario.timecomplexityanalysis.testalgorithm.MyClass.get}. Because the blacklist element is more targeted, it takes priority over the whitelist element so the method is not instrumented (see Section \ref{sec:implementation:agent:transformation} for more details).
 
 \begin{lstlisting}[breaklines,caption={Configuration JSON file example},label=lis:config1,style=json]
@@ -259,9 +226,9 @@ private int findBestMatchingPatternLength(final String input, final Set<Pattern>
 }
 \end{lstlisting}
 
-\noindent When a method is elected for instrumentation, its implementation is changed by timing it and reporting the time taken in nanoseconds and the thread \code{StackTrace} to the time reporter just before the method returns. Listing \ref{lis:measuringclassfiletransformer:methodinstrumentationexample} shows an example of instrumented method. Note that the \code{@Measured} annotation could have already been there because specified by the end user, but it is also added by the transformer as the time recorder implementation will need to know what methods are instrumented in order to build the call tree (see Section \ref{sec:implementation:timerecorderimplementation}).
+\noindent When a method is elected for instrumentation, its implementation is changed to record measurements. The first approach (see Listing \ref{lis:measuringclassfiletransformer:firstmethodinstrumentationexample}) involved measuring time taken in nanoseconds and the thread \code{StackTrace} to the time reporter just before the method returned.
 
-\begin{lstlisting}[breaklines,caption={Method instrumentation example},label=lis:measuringclassfiletransformer:methodinstrumentationexample]
+\begin{lstlisting}[breaklines,caption={Method instrumentation example (first approach)},label=lis:measuringclassfiletransformer:firstmethodinstrumentationexample]
 $$@Measured
 public void myMethod() {
  StackTraceElement[] _agent_stackTrace = Thread.currentThread().getStackTrace();
@@ -270,6 +237,21 @@ public void myMethod() {
  // Original implementation here
 
  _AGENT_TIME_RECORDER.reportTime(System.nanoTime() - _agent_startTime, _agent_stackTrace);
+}
+\end{lstlisting}
+
+\noindent Tests showed how this implementation always slowed down the instrumented method by a constant amount of time in the order of magnitude of \SI{10}{\micro\second} on a \SI{2.8}{\giga\hertz} machine. This is an enormous amount of time that would have a big impact on the observer effect, hence drastically compromising the time complexity calculation. Profiling the agent showed how the culprit is the call to get the stack trace.
+
+\noindent The instrumentation logic has to be as light as possible to not have an impact on the measurement of the time complexity of the algorithm under test. The second approach (see Listing \ref{lis:measuringclassfiletransformer:secondmethodinstrumentationexample}) removes the slow call to get the stack trace and instead simply informs the time recorder of when the method has started and when it has finished, passing along the unique method long name (which consists of package name, class name, method name and arguments types). The time recorder will have more responsibilities and will be a bit more complicated because, on top of having to calculate the time taken it will also require to work out the stack trace of each time report. Delegating the complex logic to the time recorder is a much better approach as it can be done in a separate thread and/or after all the recording rounds have run, hence greatly reducing the observer effect.
+
+\begin{lstlisting}[breaklines,caption={Method instrumentation example (second approach)},label=lis:measuringclassfiletransformer:secondmethodinstrumentationexample]
+$$@Measured
+public void myMethod() {
+ _AGENT_TIME_RECORDER.methodStarted("myPackage.myClass.myMethod()");
+
+ // Original implementation here
+
+ _AGENT_TIME_RECORDER.methodFinished("myPackage.myClass.myMethod()");
 }
 \end{lstlisting}
 
@@ -282,7 +264,7 @@ Some classes are pre-loaded in the JVM, such as some of the classes that are par
 
 \enquote{The retransformation must not add, remove or rename fields or methods, change the signatures of methods, or change inheritance}
 
-\noindent Because \code{MeasuringClassFileTransformer} adds a field \code{\_AGENT\_TIME\_RECORDER}, retrasformation is not allowed and as a consequence any pre-loaded classes cannot be analysed.
+\noindent Because \code{MeasuringClassFileTransformer} adds a field \code{\_AGENT\_TIME\_RECORDER}, retrasformation is not allowed and as a consequence any pre-loaded classes cannot be analysed. The field is not strictly necessary as it could simply be instantiated and initialised inside the instrumented method instead. Doing so would imply slowing down the each instrumented method as the initialisation takes CPU time.
 
 \section{Time recorder API}
 \label{sec:implementation:timerecorderapi}

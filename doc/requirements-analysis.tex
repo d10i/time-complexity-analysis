@@ -1,6 +1,6 @@
 \chapter{Requirements analysis}
 
-This chapter aims to determine the software requirements to help tailor the software design and implementation. Section \ref{sec:requirementanalysis:definitions} introduces some definitions and concepts that are going to be used across the document. The software can be divided into two different concerns: profiling and analysis. The profiling part is responsible for the measuring of time spent in each instrumented method and its requirement are discussed in Section \ref{sec:requirementanalysis:profiling}. The analysis part takes the data measured by the profiler and works out the time complexity of the algorithm under test. Its requirements are discussed in Section \ref{sec:requirementanalysis:analysis}. These two concerns have very different types of requirements, mainly because the former runs at the same time as the tested algorithm, while the latter does not.
+This chapter aims to determine the software requirements to help tailor the software design and implementation. Section \ref{sec:requirementanalysis:definitions} introduces some definitions and concepts that are going to be used across the document. The software can be divided into two different concerns: profiling and analysis. The profiling part is responsible for the measuring of time spent in each instrumented method and its requirements are discussed in Section \ref{sec:requirementanalysis:profiling}. The analysis part takes the data measured by the profiler and works out the time complexity of the algorithm under test. Its requirements are discussed in Section \ref{sec:requirementanalysis:analysis}. These two concerns have very different types of requirements, mainly because the former runs at the same time as the tested algorithm, while the latter does not.
 
 \section{Definitions}
 \label{sec:requirementanalysis:definitions}
@@ -11,13 +11,16 @@ Throughout the document, the input size is always indicated with $n$. An algorit
 \subsection{Round}
 For the scope of this dissertation, a round is the execution of the algorithm under test with a given known input. For example, if the algorithm under test is a sorting algorithm, a round is the sorting of a list of known size $n$.
 
+\subsection{Measurement}
+Generally speaking, an algorithm is made up of one of more methods, each one keeping the CPU busy for a certain period of time and usually being called several times. For the scope of this dissertation and unless otherwise stated, a measurement captures information about how much time is spent in a specific method and how many times the method is called for a specific input size $n$.
+
 \subsection{Call tree}
 A call tree is a more specific version of a call graph\cite{GKM00}, where each node corresponds to a specific stack trace. The difference between a call tree and a call graph is that in the former a method can appear more than once if it's called by different methods, while in the latter it would only appear once and have several edges pointing to it.
 
 \noindent For the scope of this dissertation, three types of call trees are introduced in the next sections.
 
 \subsubsection{Raw call tree}
-In a raw call tree, each node contains information about how much total time has been spent inside this method (specifically in this call stack path), including inside each of the methods it calls (its children). It also contains information about how many total times the method has been called, which is affected by the amount of times its parent has been called. Figure \ref{fig:rawcalltree} shows an example of raw call tree.
+In a raw call tree, each node contains a measurement for a specific method in a specific call stack path (i.e. tree branch). The measurement is in its raw form, which means that it includes the time spent inside each of the methods it calls (its children). Also, the total times the method has been called is affected by the amount of times its parents have been called. Figure \ref{fig:rawcalltree} shows an example of raw call tree.
 
 \begin{figure}
   \centering
@@ -75,8 +78,7 @@ In a raw call tree, each node contains information about how much total time has
     {
       \begin{tabular}{c}
         $method3$\\
-        \SI{38.7226}{\milli\second}
-      \end{tabular}
+        \SI{38.7226}{\milli\second}      \end{tabular}
     };
     
     \node[state,
@@ -437,7 +439,7 @@ It needs to be possible to easily change the analysis configuration in order to 
 \end{itemize}
 
 \subsection{Supported curves}
-Because the software analyses the methods in isolation, it only needs to fit the measured data to one of the basic \enquote{primitives} (TODO: is this really a requirement?):
+Because the software analyses the methods in isolation, it only needs to fit the measured data to one of the basic \enquote{primitives}:
 \begin{itemize}
   \item Constant ($f(n) = a$)
   \item Linear ($f(n) = a \cdot n + b$)
