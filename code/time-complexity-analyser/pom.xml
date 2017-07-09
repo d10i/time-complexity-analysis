@@ -73,7 +73,8 @@
         </dependency>
         <dependency>
             <groupId>tech.dario.timecomplexityanalysis</groupId>
-            <artifactId>time-recorder-akka</artifactId>
+            <artifactId>time-recorder-single-thread</artifactId>
+            <!--<artifactId>time-recorder-akka</artifactId>-->
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
