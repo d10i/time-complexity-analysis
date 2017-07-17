@@ -29,7 +29,7 @@ public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, 
 
     MergeableNode<T> mergedNode = new MergeableNode<>(getName(), getData());
 
-    // Merge node
+    // Merge node data
     mergedNode.mergeData(otherNode.getData());
 
     // Add all children that are in this node, merging them with the ones in the other node when they exist

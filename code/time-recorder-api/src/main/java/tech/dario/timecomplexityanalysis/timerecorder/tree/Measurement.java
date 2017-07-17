@@ -3,7 +3,7 @@ package tech.dario.timecomplexityanalysis.timerecorder.tree;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-public class Metrics implements MergeableValue<Metrics> {
+public class Measurement implements MergeableValue<Measurement> {
   private double count;
   private double total;
 
@@ -18,16 +18,16 @@ public class Metrics implements MergeableValue<Metrics> {
     DECIMAL_FORMAT.setGroupingUsed(true);
   }
 
-  private Metrics() {
+  private Measurement() {
   }
 
-  public Metrics(double count, double total) {
+  public Measurement(double count, double total) {
     this.count = count;
     this.total = total;
   }
 
-  public static Metrics fromElapsedTime(long elapsedTime) {
-    return new Metrics(1, elapsedTime);
+  public static Measurement fromElapsedTime(long elapsedTime) {
+    return new Measurement(1, elapsedTime);
   }
 
   public double getCount() {
@@ -39,9 +39,9 @@ public class Metrics implements MergeableValue<Metrics> {
   }
 
   @Override
-  public Metrics mergeWith(Metrics otherMetrics) {
-    this.count += otherMetrics.count;
-    this.total += otherMetrics.total;
+  public Measurement mergeWith(Measurement otherMeasurement) {
+    this.count += otherMeasurement.count;
+    this.total += otherMeasurement.total;
     return this;
   }
 
@@ -50,10 +50,10 @@ public class Metrics implements MergeableValue<Metrics> {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    Metrics metrics = (Metrics) o;
+    Measurement measurement = (Measurement) o;
 
-    if (Double.compare(metrics.count, count) != 0) return false;
-    return Double.compare(metrics.total, total) == 0;
+    if (Double.compare(measurement.count, count) != 0) return false;
+    return Double.compare(measurement.total, total) == 0;
 
   }
 

@@ -10,13 +10,13 @@ public abstract class AbstractTree<T, S extends AbstractNode<T, S>, R extends Ab
     this.rootNode = rootNode;
   }
 
+  public void add(S newChild) {
+    rootNode.add(newChild);
+  }
+
   public <T2, S2 extends AbstractNode<T2, S2>, R2 extends AbstractTree<T2, S2, R2>> R2 map(Function<? super S2, ? extends R2> treeCreator, Function<? super S, ? extends S2> nodeMapper) {
     final S2 newRootNote = rootNode.map(nodeMapper);
     return treeCreator.apply(newRootNote);
-  }
-
-  public void add(S newChild) {
-    rootNode.add(newChild);
   }
 
   public S getRootNode() {

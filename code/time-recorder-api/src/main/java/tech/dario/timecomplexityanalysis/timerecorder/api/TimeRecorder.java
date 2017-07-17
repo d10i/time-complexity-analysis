@@ -1,7 +1,7 @@
 package tech.dario.timecomplexityanalysis.timerecorder.api;
 
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableTree;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.Measurement;
 
 public interface TimeRecorder {
   void start();
@@ -9,5 +9,5 @@ public interface TimeRecorder {
   void methodStarted(String methodLongName);
   void methodFinished(String methodLongName);
 
-  MergeableTree<Metrics> stop() throws Exception;
+  MergeableTree<Measurement> stop() throws Exception;
 }
