@@ -5,15 +5,40 @@ This chapter discusses how the software has been implemented. Section \ref{sec:i
 \section{Overview}
 \label{sec:implementation:overview}
 
-TODO by 17/07:
+\subsection{Important considerations}
+As mentioned in previous chapters, one of the most important aspects of the product is to limit the observer effect. It is extremely important that the act of instrumenting and analysing the algorithm under test has the smallest possible impact on the algorithm's performance. Performance in programs that run on the JVM is also impacted be the garbage collection, given that when that happens all the threads are temporarily paused. This means that the act of collecting measurements must not have a big impact on memory, or the garbage collection will happen too often having a great impact on the algorithm's performance.
+
+\noindent Considering this, it would be very hard, if not impossible, to come up with the theory supporting the instrumentation and measuring logic. Instead, different implementations will be attempted, discussed and compared in the following sections. All the different approaches will of course keep performance and memory usage in mind.
+
+\subsection{Modules and dependencies}
+The modules discussed in the previous chapters are defined as Maven\footnote{https://maven.apache.org/} modules. Maven is a tool that can be used to build and manage Java-based projects. Modules can be defined via a \code{pom.xml} file in the module's root folder, specifying the module group ID, artifact ID, version and the dependencies it has on other Maven modules. Maven dependencies could be defined by the user or could be 3rd party modules that exist in Maven public repositories. An example of a \code{pom.xml} file can be find in Appendix \ref{sec:appendices:examplepomfile}.
+
+\subsection{Testing}
+The concept of test-driven development (TDD) is applied to all modules. Tests that describe requirements are written prior to the implementation, then the implementation is added ensuring that the tests pass. This process inspires confidence, makes the software more robust and allows for easy refactoring. On top of that, benchmarks are used across modules that are performance-critical, ensuring the CPU time they use is minimal.
+
+\subsection{Logging and debugging}
+For this product's implementation, logging is very useful for:
 \begin{itemize}
-  \item Discuss requirements... measure observer effect
-  \item Discuss precision and speed
-  \item Talk about Maven (modules and dependencies)
-  \item Testing approach (TDD)
-  \item Logging and debugging
-  \item Code snippets are simplified (no logging, no final, etc)
+  \item Show debugging information, used to address problems such as bugs and performance issues
+  \item Pointing to the line of code that caused an exception
+  \item Better understanding of the application flow, especially for the users that don't know about the underlying software implementation
 \end{itemize}
+
+\noindent Simple Logging Facade for Java (SLF4J)\footnote{https://www.slf4j.org/} is an abstraction over different Java logging frameworks such as \code{java.util.logging}, \code{logback} and \code{log4j}. All the modules described in the following sections use the SLF4J API for logging.
+
+\noindent The actual SLF4J implementation is only defined and configured at runtime, specifically in the root module (Time complexity analyser) via a Maven dependency and a configuration file. Logback is highly customisable and the log granularity can be configured on a per-package basis. During development it's often useful to show debugging information for the specific modules that are being worked on. Logging has an impact on performance so in the final implementation the logging should be minimal. Logback makes it very easy to change configuration via a \code{logback.xml} file that lives in the \code{src/main/resources} folder.
+
+\noindent Most 3rd party Maven modules already use the SLF4J API but for the ones that don't SLF4J also offers bridges which redirect calls the legacy loggers to behave as if they were made to the SLF4J API instead.
+
+\subsection{Disclaimer}
+Code snippets included in the following sections have some differences compared to real product code:
+\begin{itemize}
+  \item Indentation in this document is 1 space character, compared to 2 spaces in the real code
+  \item Log lines are removed from this document
+  \item Some keywords, such as \code{final}, are removed from this document
+\end{itemize}
+
+\noindent All these differences are purely made for a question of space and to only show the part of the code that is relevant and important.
 
 \section{Annotations}
 \label{sec:implementation:annotations} 

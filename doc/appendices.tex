@@ -1,2 +1,53 @@
 \chapter{Appendices}
-TODO
+
+\subsection{Example pom.xml file}
+\label{sec:appendices:examplepomfile}
+
+\begin{lstlisting}[
+breaklines,
+caption={Maven $pom.xml$ example},
+label=lis:mavenpomexample
+language=XML,
+morekeywords={xml,project,modelVersion,groupId,artifactId,version,properties,
+build,dependencies,dependency,encoding,xmlns,xsi,schemaLocation}]
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+ <modelVersion>4.0.0</modelVersion>
+
+ <groupId>tech.dario.timecomplexityanalysis</groupId>
+ <artifactId>time-complexity-analyser</artifactId>
+ <version>1.0-SNAPSHOT</version>
+
+ <dependencies>
+  <dependency>
+   <groupId>tech.dario.timecomplexityanalysis</groupId>
+   <artifactId>time-complexity-analysis-sdk</artifactId>
+   <version>1.0-SNAPSHOT</version>
+  </dependency>
+  <dependency>
+   <groupId>tech.dario.timecomplexityanalysis</groupId>
+   <artifactId>test-algorithm</artifactId>
+   <version>1.0-SNAPSHOT</version>
+  </dependency>
+  <dependency>
+   <groupId>tech.dario.timecomplexityanalysis</groupId>
+   <artifactId>time-recorder-single-thread</artifactId>
+   <version>1.0-SNAPSHOT</version>
+  </dependency>
+
+  <!-- Logging -->
+  <dependency>
+   <groupId>org.slf4j</groupId>
+   <artifactId>slf4j-api</artifactId>
+   <version>1.7.25</version>
+  </dependency>
+  <dependency>
+   <groupId>ch.qos.logback</groupId>
+   <artifactId>logback-classic</artifactId>
+   <version>1.2.3</version>
+  </dependency>
+ </dependencies>
+</project>
+\end{lstlisting}
