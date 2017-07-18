@@ -1,7 +1,6 @@
 package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
-public class MergeableTree<T extends MergeableValue<T>> extends AbstractTree<T, MergeableNode<T>, MergeableTree<T>> implements MergeableValue<MergeableTree<T>> {
-
+public class MergeableTree<T extends Mergeable<T>> extends AbstractTree<T, MergeableNode<T>, MergeableTree<T>> implements Mergeable<MergeableTree<T>> {
   public MergeableTree() {
     this(new MergeableNode<>("root", null));
   }
@@ -11,7 +10,11 @@ public class MergeableTree<T extends MergeableValue<T>> extends AbstractTree<T, 
   }
 
   @Override
-  public MergeableTree<T> mergeWith(MergeableTree<T> mergeableTree) {
-    return new MergeableTree<>(getRootNode().mergeWith(mergeableTree != null ? mergeableTree.getRootNode() : null));
+  public MergeableTree<T> mergeWith(MergeableTree<T> otherTree) {
+    MergeableNode<T> otherRootNode = null;
+    if (otherTree != null) {
+      otherRootNode = otherTree.getRootNode();
+    }
+    return new MergeableTree<>(getRootNode().mergeWith(otherRootNode));
   }
 }

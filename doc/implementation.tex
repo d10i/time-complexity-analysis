@@ -36,7 +36,7 @@ Code snippets included in the following sections have some differences compared 
   \item Indentation in this document is 1 space character, compared to 2 spaces in the real code
   \item Log lines are removed
   \item Imports are omitted
-  \item Some keywords, such as \code{final}, are removed
+  \item Some keywords, such as \code{final}, are sometimes removed
 \end{itemize}
 
 \noindent All these differences are purely made for a question of space and to only show the part of the code that is relevant and important.
@@ -342,16 +342,316 @@ public class StaticTimeRecorderBinder {
 }
 \end{lstlisting}
 
-In order for this trick to work, the time recorder implementation will have to define the class so that its fully qualified name is \code{tech/dario/timecomplexityanalysis/timerecorder/impl/StaticTimeRecorderBinder}. The class will need to define the same 3 public methods:
+\noindent In order for this trick to work, the time recorder implementation will have to define the class so that its fully qualified name is \code{tech/dario/timecomplexityanalysis/timerecorder/impl/StaticTimeRecorderBinder}. The class will need to define the same 3 public methods:
 
 \begin{itemize}
   \item \textbf{\code{static} \code{StaticTimeRecorderBinder} \code{getSingleton()}}: used by \code{StaticTimeRecorderFactory} to get a singleton instance of the \code{StaticTimeRecorderBinder}
   \item \textbf{\code{TimeRecorder} \code{getTimeRecorder()}}: used to get the time recorder
-  \item \textbf{\code{String} \code{getTimeRecorderFactoryClassStr()}} used to return the implementation name (purely used to distinguish it from other implementations)
+  \item \textbf{\code{String} \code{getTimeRecorderClassStr()}} used to return the implementation name (purely used to distinguish it from other implementations)
 \end{itemize}
 
-TODO by 18/07
+\subsection{Data structures}
+\label{sec:implementation:timerecorderapi:datastructures}
 
+The API also offers some powerful data structures in order for other modules to be able to easily manage and transform the recorded data. Figure \ref{fig:timerecorerapi:datastructuresclassdiagram} shows a class diagram of all the different data structures that exist within this module. Note that this class diagram only shows inheritances and implementations and does not include associations, compositions and aggregations. It also omits information about the classes type parameters.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[rotate=90, transform shape]
+    \umlsimpleclass[y=0.0em, x=0.0em, width=9.0em, type=abstract]{AbstractNode}
+    \umlsimpleinterface[y=0.0em, x=14.0em, width=9.0em]{Mergeable}
+    \umlsimpleclass[y=0.0em, x=28.0em, width=9.0em, type=abstract]{AbstractTree}
+    \umlsimpleclass[y=-12.0em, x=9.0em, width=9.0em]{MergeableList}
+    \umlsimpleclass[y=-12.0em, x=19.0em, width=9.0em]{Measurement}
+    \umlsimpleclass[y=-6.0em, x=-5.0em, width=9.0em]{SimpleNode}
+    \umlsimpleclass[y=-6.0em, x=5.0em, width=9.0em]{MergeableNode}
+    \umlsimpleclass[y=-6.0em, x=23.0em, width=9.0em]{MergeableTree}
+    \umlsimpleclass[y=-6.0em, x=33.0em, width=9.0em]{SimpleTree}
+    
+    \umlinherit[geometry=|-|]{SimpleNode}{AbstractNode}
+    \umlinherit[geometry=|-|]{MergeableNode}{AbstractNode}
+    \umlimpl[geometry=|-|, anchor1=32]{MergeableNode}{Mergeable}
+    
+    \umlimpl[geometry=|-|, weight=0.3]{MergeableList}{Mergeable}
+    \umlimpl[geometry=|-|, weight=0.3]{Measurement}{Mergeable}
+    
+    \umlimpl[geometry=|-|, anchor1=147]{MergeableTree}{Mergeable}
+    \umlinherit[geometry=|-|]{MergeableTree}{AbstractTree}
+    \umlinherit[geometry=|-|]{SimpleTree}{AbstractTree}
+  \end{tikzpicture}
+  \caption{Data structures class diagram}
+  \label{fig:timerecorerapi:datastructuresclassdiagram}
+\end{figure}
+
+\subsubsection{AbstractNode}
+\code{AbstractNode} is an abstract generic class defined as shown in Listing \ref{lis:timerecorderapi:abstractnodeclassdefinition}.
+
+\begin{lstlisting}[breaklines,caption={AbstractNode class definition},label=lis:timerecorderapi:abstractnodeclassdefinition]
+public abstract class AbstractNode<T, S extends AbstractNode<T, S>> {
+ private final String name;
+ private S parent;
+ private T data;
+ private Map<String, S> children;
+
+ // ...
+}
+\end{lstlisting}
+
+\noindent It has 2 type paramenters: \code{T} is the type of the data the node contains while \code{S} is the reference to the node type itself. The latter is useful mainly to make the definition a bit more clear and understandable.
+
+\noindent It has a \code{name} field to uniquely identify it, a \code{parent} field to store the reference to its parent, a \code{data} field to store the data and a \code{children} field containing a reference to all the children. Children are stored in a \code{Map<String, S>} (where \code{S} is the type of the node), so that children can be looked up by name in constant time.
+
+\noindent Besides basic methods such as \code{add(...)} and getters, this class has a powerful \code{map} method (shown in Listing \ref{lis:timerecorderapi:abstractnodemapmethoddefinition}) to return a copy of the node with a function applied to the node and each of its children, recursively.
+
+\begin{lstlisting}[breaklines,caption={AbstractNode map method definition},label=lis:timerecorderapi:abstractnodemapmethoddefinition]
+public <T2, S2 extends AbstractNode<T2, S2>> S2 map(Function<? super S, ? extends S2> mapper) {
+ Queue<NodesPair<T, S, T2, S2>> queue = new LinkedList<>();
+
+ S2 newRootNode = mapper.apply((S)this);
+
+ queue.add(new NodesPair<>((S)this, newRootNode));
+
+ while (!queue.isEmpty()) {
+  NodesPair<T, S, T2, S2> nodes = queue.remove();
+
+  S node = nodes.getNode1();
+  S2 newNode = nodes.getNode2();
+
+  for (S childNode : node.getChildren().values()) {
+   S2 newChildNode = mapper.apply(childNode);
+   newNode.add(newChildNode);
+   queue.add(new NodesPair<>(childNode, newChildNode));
+  }
+ }
+
+ return newRootNode;
+}
+\end{lstlisting}
+
+\noindent The method uses a non-recursive implementation of Breadth-first search (BFS) \cite{EFM59} to traverse the tree. To start, the node and its transformed version (after applying the mapping function) are added to the BFS queue in an instance of \code{NodesPair}, a simple object that stores two nodes in memory (\code{node1} is the original one, \code{node2} is the transformed one). Then, every time an element is popped from the queue, a loop goes through all the \code{node1} children, applying the mapping function to each one of them. The transformed children are added to the \code{node2} that the BFS loop is currently visiting, and are also added to the BFS queue, again in instances of \code{NodesPair} together with their original counterparts.
+
+\subsubsection{Mergeable}
+\code{Mergeable} is an interface defined as shown in Listing \ref{lis:timerecorderapi:mergeableinterfacedefinition}.
+
+\begin{lstlisting}[breaklines,caption={Mergeable interface definition},label=lis:timerecorderapi:mergeableinterfacedefinition]
+public interface Mergeable<T extends Mergeable<T>> {
+ T mergeWith(T mergeable);
+}
+\end{lstlisting}
+
+\noindent It has a type parameter \code{T} that refers to its own type. It defines a \code{mergeWith(...)} that is needed to indicate that the classes implementing this interface are mergeable. When a class is mergeable, it needs to define a \code{mergeWith(...)} method, which takes another object of the same type, merges it with itself and returns the merged object. Useful usages of this interface will be presented in the following sections.
+
+\subsubsection{AbstractTree}
+
+\code{AbstractTree} is an abstract class defined as shown in Listing \ref{lis:timerecorderapi:abstracttreeclassdefinition}.
+
+\begin{lstlisting}[breaklines,caption={AbstractTree class definition},label=lis:timerecorderapi:abstracttreeclassdefinition]
+public abstract class AbstractTree<T, S extends AbstractNode<T, S>, R extends AbstractTree<T, S, R>> {
+ protected S rootNode;
+ 
+ // ...
+}
+\end{lstlisting}
+
+\noindent It has 3 type paramenters: \code{T} is the type of the data the tree contains, \code{S} is the type of node the tree uses and \code{R} is the reference to the tree type itself. As per \code{AbstractNode}, both \code{S} and \code{R} are useful mainly to make the definition a bit more clear and understandable.
+
+\noindent It has a single field \code{rootNode}, which stores the reference to the tree's root node.
+
+\noindent Besides basic methods to add nodes and to get the root node, this class also has a powerful \code{map} method (shown in Listing \ref{lis:timerecorderapi:abstracttreemapmethoddefinition}) to return a copy of the tree with a function applied to each of its nodes.
+
+\begin{lstlisting}[breaklines,caption={AbstractTree map method definition},label=lis:timerecorderapi:abstracttreemapmethoddefinition]
+public <T2, S2 extends AbstractNode<T2, S2>, R2 extends AbstractTree<T2, S2, R2>> R2 map(Function<? super S2, ? extends R2> treeCreator, Function<? super S, ? extends S2> nodeMapper) {
+ S2 newRootNote = rootNode.map(nodeMapper);
+ return treeCreator.apply(newRootNote);
+}
+\end{lstlisting}
+
+\noindent In this case the method takes two functions: \code{treeCreator} and \code{nodeMapper}. \code{treeCreator} takes the new root node as input and returns a new tree using that node as the root node. \code{nodeMapper} is the node transformer and is simply applied to the tree's root node via a call to its \code{map(...)} method shown before in Listing \ref{lis:timerecorderapi:abstractnodemapmethoddefinition}. The combination of the two returns a new tree with each of its node mapped using the supplied mapping function.
+
+\subsubsection{SimpleNode}
+
+\code{SimpleNode} is a concrete class defined as shown in Listing \ref{lis:timerecorderapi:simplenodeclassdefinition}.
+
+\begin{lstlisting}[breaklines,caption={SimpleNode class definition},label=lis:timerecorderapi:simplenodeclassdefinition]
+public class SimpleNode<T> extends AbstractNode<T, SimpleNode<T>> {
+ public SimpleNode(final String name) {
+  this(name, null);
+ }
+
+ public SimpleNode(final String name, final T data) {
+  super(name, data);
+ }
+}
+\end{lstlisting}
+
+\noindent As the name suggests, it's the simplest possible implementation of \code{AbstractNode}. It represent a simple node that stores data of type \code{T}.
+
+\subsubsection{MergeableNode}
+
+\code{MergeableNode} is a concrete class defined as shown in Listing \ref{lis:timerecorderapi:mergeablenodeclassdefinition}.
+
+\begin{lstlisting}[breaklines,caption={MergeableNode class definition},label=lis:timerecorderapi:mergeablenodeclassdefinition]
+public class MergeableNode<T extends Mergeable<T>> extends AbstractNode<T, MergeableNode<T>> implements Mergeable<MergeableNode<T>> {
+ public MergeableNode(String name) {
+  this(name, null);
+ }
+
+ public MergeableNode(String name, T data) {
+  super(name, data);
+ }
+
+ public void addData(T data) {
+  mergeData(data);
+ }
+  
+ // ...
+
+ private void mergeData(T otherData) {
+  if (!this.hasData()) {
+    setData(otherData);
+  } else if (otherData != null) {
+    setData(getData().mergeWith(otherData));
+  }
+ }
+\end{lstlisting}
+
+\noindent This class represents a node that can be merged with another node of the same type. It has a type parameter \code{T}, where \code{T} has to be a class that implements \code{Mergeable}. On top of all methods offered by \code{AbstractNode}, which this class extends, it allows adding data to the node. If the node already has data, it is merged with the new value, otherwise the new value is just set as the node data.
+
+\noindent Because this class itself implements the \code{Mergeable} interface, it needs to implement a \code{mergeWith(...)} method, shown in Listing \ref{lis:timerecorderapi:mergeablenodemergewithmethoddefinition}.
+
+\begin{lstlisting}[breaklines,caption={MergeableNode mergeWith method definition},label=lis:timerecorderapi:mergeablenodemergewithmethoddefinition]
+$$@Override
+public MergeableNode<T> mergeWith(MergeableNode<T> otherNode) {
+ if (otherNode == null) {
+  return this;
+ }
+
+ if (!getName().equals(otherNode.getName())) {
+  String message = String.format("Cannot merge MergeableNode '%s' with MergeableNode '%s' as names are different", getName(), otherNode.getName());
+  throw new RuntimeException(message);
+ }
+
+ MergeableNode<T> mergedNode = new MergeableNode<>(getName(), getData());
+
+ // Merge node data
+ mergedNode.mergeData(otherNode.getData());
+
+ // Add all children that are in this node, merging them with the ones in the other node when they exist
+ for (Map.Entry<String, MergeableNode<T>> child : getChildren().entrySet()) {
+  String childName = child.getKey();
+  if (otherNode.hasChild(childName)) {
+   mergedNode.add(child.getValue().mergeWith(otherNode.getChild(childName)));
+  } else {
+   mergedNode.add(child.getValue());
+  }
+ }
+
+ // Add all children that are in otherNode but not in this node
+ for (Map.Entry<String, MergeableNode<T>> child : otherNode.getChildren().entrySet()) {
+  String childName = child.getKey();
+  if (!mergedNode.hasChild(childName)) {
+   mergedNode.add(child.getValue());
+  }
+ }
+
+ return mergedNode;
+}
+\end{lstlisting}
+
+\noindent First, the subject node's data is merged with the other node's data. Then, for each child in the subject node, the correspondent child (i.e. with the same name) is looked up in the other node and if found they are merged using the \code{mergeWith(...)} method. If not found, the subject node's data is used instead. Because there could be some children in the other node that are not present in the subject node, it is necessary to loop through all the children in the other node that are not present in the current node and add them to the merged node. Note that because there is a recursive call to the \code{mergeWith(...)} method, the whole node hierarchy will be merged.
+
+\subsubsection{MergeableTree}
+
+\code{MergeableTree} is a concrete class defined as shown in Listing \ref{lis:timerecorderapi:mergeabletreeclassdefinition}.
+
+\begin{lstlisting}[breaklines,caption={MergeableTree class definition},label=lis:timerecorderapi:mergeabletreeclassdefinition]
+public class MergeableTree<T extends Mergeable<T>> extends AbstractTree<T, MergeableNode<T>, MergeableTree<T>> implements Mergeable<MergeableTree<T>> {
+ public MergeableTree() {
+  this(new MergeableNode<>("root", null));
+ }
+
+ public MergeableTree(MergeableNode<T> rootNode) {
+  super(rootNode);
+ }
+
+ $$@Override
+ public MergeableTree<T> mergeWith(MergeableTree<T> otherTree) {
+  MergeableNode<T> otherRootNode = null;
+  if (otherTree != null) {
+   otherRootNode = otherTree.getRootNode();
+  }
+  return new MergeableTree<>(getRootNode().mergeWith(otherRootNode));
+ }
+}
+\end{lstlisting}
+
+\noindent This class represents a tree that can be merged with another tree of the same type. It has a type parameter \code{T}, where \code{T} has to be a class that implements \code{Mergeable}. It extends \code{AbstractTree} and, given it also implements the \code{Mergeable} interface, on top of all methods offered by \code{AbstractTree} it needs to implement a \code{mergeWith(...)} method. The \code{mergeWith(...)} method simply merges the root node of the subject tree with the root node of the other tree and then returns a new instance of \code{MergeableTree}, with the merged node as the root node.
+
+\subsubsection{SimpleTree}
+
+\code{SimpleTree} is a concrete class defined as shown in Listing \ref{lis:timerecorderapi:simpletreeclassdefinition}.
+
+\begin{lstlisting}[breaklines,caption={SimpleTree class definition},label=lis:timerecorderapi:simpletreeclassdefinition]
+public class SimpleTree<T> extends AbstractTree<T, SimpleNode<T>, SimpleTree<T>> {
+ public SimpleTree() {
+  this(new SimpleNode<>("root", null));
+ }
+
+ public SimpleTree(SimpleNode<T> rootNode) {
+  super(rootNode);
+ }
+}
+\end{lstlisting}
+
+\noindent As the name suggests, it's the simplest possible implementation of \code{AbstractTree}. It represent a simple tree that stores data of type \code{T}.
+
+\subsubsection{MergeableList}
+
+\code{MergeableList} is a concrete class defined as shown in Listing \ref{lis:timerecorderapi:mergeablelistclassdefinition}.
+
+\begin{lstlisting}[breaklines,caption={MergeableList class definition},label=lis:timerecorderapi:mergeablelistclassdefinition]
+public class MergeableList<T> implements Mergeable<MergeableList<T>> {
+ private List<T> list;
+
+ // ...
+
+ $$@Override
+ public MergeableList<T> mergeWith(MergeableList<T> otherList) {
+  List<T> newList = new ArrayList<>(size() + otherList.size());
+  newList.addAll(list);
+  newList.addAll(otherList.getList());
+  return new MergeableList<>(newList);
+ }
+
+ // ...
+}
+\end{lstlisting}
+
+\noindent It represents a list that can be merged with another list of the same type. It encapsulates a generic \code{List<T>} and it implements the \code{Mergeable} interface. The merging strategy, defined in method \code{mergeWith(...)}, creates a new \code{MergeableList}, encapsulating a new \code{List<T>} made of the subject list' elements appended to the other list's elements. This guarantees that both the subject and the other list are not modified, as that could cause unexpected behaviours.
+
+\subsubsection{Measurement}
+
+\code{Measurement} is a concrete class defined as shown in Listing \ref{lis:timerecorderapi:measurementclassdefinition}.
+
+\begin{lstlisting}[breaklines,caption={Measurement class definition},label=lis:timerecorderapi:measurementclassdefinition]
+public class Measurement implements Mergeable<Measurement> {
+ private final double count;
+ private final double total;
+
+ // ...
+
+ @Override
+ public Measurement mergeWith(Measurement otherMeasurement) {
+  double newCount = count + otherMeasurement.count;
+  double newTotal = total + otherMeasurement.total;
+  return new Measurement(newCount, newTotal);
+ }
+
+ // ...
+}
+\end{lstlisting}
+
+\noindent It represent a measurement, as defined in Section \ref{sec:requirementanalysis:definitions:measurement}. It is useful for the time recorder implementation to store how many times a method has been called (\code{count}) and the total amount of time spent inside the method (\code{total}. Because it implements the \code{Mergeable} interface, when two measurements are merged, the subject \code{count} is summed with the other \code{count} and the subject \code{total} is summed with the other \code{total}. A new instance of \code{Measurement} containing the new values is returned, in order to guarantee immutability.
 
 \section{Time recorder implementation}
 \label{sec:implementation:timerecorderimplementation}

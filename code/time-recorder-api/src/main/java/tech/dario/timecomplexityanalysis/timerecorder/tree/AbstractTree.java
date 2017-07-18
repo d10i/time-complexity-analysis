@@ -3,7 +3,6 @@ package tech.dario.timecomplexityanalysis.timerecorder.tree;
 import java.util.function.Function;
 
 public abstract class AbstractTree<T, S extends AbstractNode<T, S>, R extends AbstractTree<T, S, R>> {
-
   protected S rootNode;
 
   protected AbstractTree(S rootNode) {

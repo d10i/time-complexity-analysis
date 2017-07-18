@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorder;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableTree;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.Measurement;
 
 import java.util.ArrayDeque;
 
@@ -46,15 +46,15 @@ public class SingleThreadTimeRecorder implements TimeRecorder {
   }
 
   @Override
-  public MergeableTree<Metrics> stop() throws Exception {
+  public MergeableTree<Measurement> stop() throws Exception {
     synchronized (SingleThreadTimeRecorder.class) {
       LOGGER.info("Stopping {}", this);
 
-      MergeableTree<Metrics> mergeableMetricsTree = Helper.methodActionsListToTree(list);
+      MergeableTree<Measurement> mergeableMeasurementTree = Helper.methodActionsListToTree(list);
 
       started = false;
 
-      return mergeableMetricsTree;
+      return mergeableMeasurementTree;
     }
   }
 

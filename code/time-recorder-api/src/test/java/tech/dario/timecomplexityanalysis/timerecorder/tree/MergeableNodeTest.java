@@ -2,9 +2,18 @@ package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
-public class MergeableTreeTest {
+public class MergeableNodeTest {
+  @Test
+  public void testAddData() throws Exception {
+    MergeableNode<MergeableInteger> mergeableNode1 = new MergeableNode<>("node1", new MergeableInteger(100));
+    mergeableNode1.addData(new MergeableInteger(200));
+
+    assertEquals(300, mergeableNode1.getData().value);
+  }
+
   @Test
   public void testMergeWith() throws Exception {
     /*
@@ -23,7 +32,6 @@ public class MergeableTreeTest {
     mergeableNodeB1.add(mergeableNodeD1);
     mergeableNodeA1.add(mergeableNodeB1);
     mergeableNodeA1.add(mergeableNodeC1);
-    MergeableTree<MergeableInteger> tree1 = new MergeableTree<>(mergeableNodeA1);
 
     /*
      * 2:
@@ -39,7 +47,6 @@ public class MergeableTreeTest {
     MergeableNode<MergeableInteger> mergeableNodeE2 = new MergeableNode<>("nodeE", new MergeableInteger(30));
     mergeableNodeC2.add(mergeableNodeE2);
     mergeableNodeA2.add(mergeableNodeC2);
-    MergeableTree<MergeableInteger> tree2 = new MergeableTree<>(mergeableNodeA2);
 
     /*
      * 3 (expected):
@@ -50,8 +57,7 @@ public class MergeableTreeTest {
      * D       E
      *
      */
-    MergeableTree<MergeableInteger> tree3 = tree1.mergeWith(tree2);
-    MergeableNode<MergeableInteger> mergeableNodeA3 = tree3.getRootNode();
+    MergeableNode<MergeableInteger> mergeableNodeA3 = mergeableNodeA1.mergeWith(mergeableNodeA2);
     MergeableNode<MergeableInteger> mergeableNodeB3 = mergeableNodeA3.getChild("nodeB");
     MergeableNode<MergeableInteger> mergeableNodeC3 = mergeableNodeA3.getChild("nodeC");
     MergeableNode<MergeableInteger> mergeableNodeD3 = mergeableNodeB3.getChild("nodeD");
@@ -83,7 +89,7 @@ public class MergeableTreeTest {
     assertEquals(mergeableNodeC3, mergeableNodeE3.getParent());
   }
 
-  private class MergeableInteger implements MergeableValue<MergeableInteger> {
+  private class MergeableInteger implements Mergeable<MergeableInteger> {
     private final int value;
 
     private MergeableInteger(int value) {

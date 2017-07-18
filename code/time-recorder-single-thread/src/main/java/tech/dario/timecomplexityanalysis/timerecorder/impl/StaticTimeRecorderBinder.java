@@ -1,28 +1,28 @@
 package tech.dario.timecomplexityanalysis.timerecorder.impl;
 
-import tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorderFactory;
-import tech.dario.timecomplexityanalysis.timerecorder.impl.singlethread.AkkaTimeRecorderFactory;
+import tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorder;
+import tech.dario.timecomplexityanalysis.timerecorder.impl.singlethread.SingleThreadTimeRecorder;
 
 public class StaticTimeRecorderBinder {
 
   private static final StaticTimeRecorderBinder SINGLETON = new StaticTimeRecorderBinder();
-  private static final String timeRecorderFactoryClassStr = AkkaTimeRecorderFactory.class.getName();
+  private static final String timeRecorderClassStr = SingleThreadTimeRecorder.class.getName();
 
   public static final StaticTimeRecorderBinder getSingleton() {
     return SINGLETON;
   }
 
-  private final TimeRecorderFactory timeRecorderFactory;
+  private final TimeRecorder timeRecorder;
 
   private StaticTimeRecorderBinder() {
-    timeRecorderFactory = new AkkaTimeRecorderFactory();
+    timeRecorder = new SingleThreadTimeRecorder();
   }
 
-  public TimeRecorderFactory getTimeRecorderFactory() {
-    return timeRecorderFactory;
+  public TimeRecorder getTimeRecorder() {
+    return timeRecorder;
   }
 
-  public String getTimeRecorderFactoryClassStr() {
-    return timeRecorderFactoryClassStr;
+  public String getTimeRecorderClassStr() {
+    return timeRecorderClassStr;
   }
 }

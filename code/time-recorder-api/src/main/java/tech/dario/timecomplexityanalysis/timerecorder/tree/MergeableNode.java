@@ -2,8 +2,7 @@ package tech.dario.timecomplexityanalysis.timerecorder.tree;
 
 import java.util.Map;
 
-public class MergeableNode<T extends MergeableValue<T>> extends AbstractNode<T, MergeableNode<T>> implements MergeableValue<MergeableNode<T>> {
-
+public class MergeableNode<T extends Mergeable<T>> extends AbstractNode<T, MergeableNode<T>> implements Mergeable<MergeableNode<T>> {
   public MergeableNode(final String name) {
     this(name, null);
   }

@@ -3,10 +3,10 @@ package tech.dario.timecomplexityanalysis.timerecorder.impl.singlethread
 import java.util
 
 import scala.annotation.tailrec
-import tech.dario.timecomplexityanalysis.timerecorder.tree.{MergeableList, MergeableNode, MergeableTree, Metrics}
+import tech.dario.timecomplexityanalysis.timerecorder.tree.{MergeableList, MergeableNode, MergeableTree, Measurement}
 
 object Helper {
-  def methodActionsListToTree(list: util.ArrayDeque[MethodAction]): MergeableTree[Metrics] = {
+  def methodActionsListToTree(list: util.ArrayDeque[MethodAction]): MergeableTree[Measurement] = {
     // Single sorted list to graph with a method actions list in each node
     @tailrec
     def methodActionsListToTreeStep(res: MergeableTree[MergeableList[MethodAction]], currentNode: MergeableNode[MergeableList[MethodAction]], list: List[MethodAction]): MergeableTree[MergeableList[MethodAction]] = {
@@ -43,15 +43,15 @@ object Helper {
     val tree = new MergeableTree[MergeableList[MethodAction]]
     methodActionsListToTreeStep(tree, tree.getRootNode, list.asScala.toList)
 
-    // Transform each node data from a method actions list to Metrics
-    val mergeableMetricsTree = tree.map[Metrics, MergeableNode[Metrics], MergeableTree[Metrics]](
-      (rootNode: MergeableNode[Metrics]) => new MergeableTree[Metrics](rootNode),
+    // Transform each node data from a method actions list to Measurement
+    val mergeableMeasurementTree = tree.map[Measurement, MergeableNode[Measurement], MergeableTree[Measurement]](
+      (rootNode: MergeableNode[Measurement]) => new MergeableTree[Measurement](rootNode),
       (node: MergeableNode[MergeableList[MethodAction]]) => {
         if (node.getData == null) {
-          new MergeableNode[Metrics](node.getName, null)
+          new MergeableNode[Measurement](node.getName, null)
         } else {
           @tailrec
-          def methodActionsListToMetricsStep(res: Metrics, lastStartTime: Option[Long], list: List[MethodAction]): Metrics = {
+          def methodActionsListToMeasurementStep(res: Measurement, lastStartTime: Option[Long], list: List[MethodAction]): Measurement = {
             list match {
               case Nil =>
                 if (lastStartTime.isDefined) {
@@ -63,22 +63,22 @@ object Helper {
                 if (lastStartTime.isDefined) {
                   throw new IllegalArgumentException(s"Found two consecutive MethodStarted actions")
                 } else {
-                  methodActionsListToMetricsStep(res, Some(nanoTime), tail)
+                  methodActionsListToMeasurementStep(res, Some(nanoTime), tail)
                 }
               case (head@MethodFinished(_, nanoTime)) :: tail =>
                 if (lastStartTime.isEmpty) {
                   throw new IllegalArgumentException(s"Found two consecutive MethodFinished actions")
                 } else {
-                  methodActionsListToMetricsStep(res.mergeWith(Metrics.fromElapsedTime(nanoTime - lastStartTime.get)), None, tail)
+                  methodActionsListToMeasurementStep(res.mergeWith(Measurement.fromElapsedTime(nanoTime - lastStartTime.get)), None, tail)
                 }
             }
           }
 
-          val metrics = methodActionsListToMetricsStep(new Metrics(0.0d, 0.0d), None, node.getData.getList.asScala.toList)
-          new MergeableNode[Metrics](node.getName, metrics)
+          val measurement = methodActionsListToMeasurementStep(new Measurement(0.0d, 0.0d), None, node.getData.getList.asScala.toList)
+          new MergeableNode[Measurement](node.getName, measurement)
         }
       })
 
-    mergeableMetricsTree
+    mergeableMeasurementTree
   }
 }

@@ -3,9 +3,9 @@ package tech.dario.timecomplexityanalysis.timerecorder.tree;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-public class Measurement implements MergeableValue<Measurement> {
-  private double count;
-  private double total;
+public class Measurement implements Mergeable<Measurement> {
+  private final double count;
+  private final double total;
 
   private static final DecimalFormat DECIMAL_FORMAT;
   static {
@@ -16,9 +16,6 @@ public class Measurement implements MergeableValue<Measurement> {
     DECIMAL_FORMAT.setRoundingMode(RoundingMode.HALF_UP);
     DECIMAL_FORMAT.setDecimalSeparatorAlwaysShown(true);
     DECIMAL_FORMAT.setGroupingUsed(true);
-  }
-
-  private Measurement() {
   }
 
   public Measurement(double count, double total) {
@@ -40,9 +37,9 @@ public class Measurement implements MergeableValue<Measurement> {
 
   @Override
   public Measurement mergeWith(Measurement otherMeasurement) {
-    this.count += otherMeasurement.count;
-    this.total += otherMeasurement.total;
-    return this;
+    double newCount = count + otherMeasurement.count;
+    double newTotal = total + otherMeasurement.total;
+    return new Measurement(newCount, newTotal);
   }
 
   @Override

@@ -3,8 +3,8 @@ package tech.dario.timecomplexityanalysis.timerecorder.tree;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MergeableList<T> implements MergeableValue<MergeableList<T>> {
-  private List<T> list;
+public class MergeableList<T> implements Mergeable<MergeableList<T>> {
+  private final List<T> list;
 
   public MergeableList(List<T> list) {
     this.list = list;
@@ -24,10 +24,16 @@ public class MergeableList<T> implements MergeableValue<MergeableList<T>> {
     return list;
   }
 
+  public int size() {
+    return list.size();
+  }
+
   @Override
-  public MergeableList<T> mergeWith(MergeableList<T> otherMergeableList) {
-    this.list.addAll(otherMergeableList.getList());
-    return this;
+  public MergeableList<T> mergeWith(MergeableList<T> otherList) {
+    List<T> newList = new ArrayList<>(size() + otherList.size());
+    newList.addAll(list);
+    newList.addAll(otherList.getList());
+    return new MergeableList<>(newList);
   }
 
   @Override

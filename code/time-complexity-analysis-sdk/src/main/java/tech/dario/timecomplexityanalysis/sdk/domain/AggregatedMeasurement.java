@@ -1,13 +1,13 @@
 package tech.dario.timecomplexityanalysis.sdk.domain;
 
-import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableValue;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.Mergeable;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.Measurement;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class AggregatedMeasurement implements MergeableValue<AggregatedMeasurement> {
+public class AggregatedMeasurement implements Mergeable<AggregatedMeasurement> {
 
   private final Map<Long, Measurement> aggregatedData;
 

@@ -14,6 +14,11 @@ public class MergeableListTest {
     MergeableList<Integer> mergeableList3 = new MergeableList<>(Arrays.asList(1, 2, 3));
 
     MergeableList mergeableListMerge = mergeableList1.mergeWith(mergeableList2).mergeWith(mergeableList3);
-    assertArrayEquals(Arrays.asList(100, 1, 2, 3).toArray(), mergeableListMerge.getList().toArray());
+    assertArrayEquals(new Integer[]{100, 1, 2, 3}, mergeableListMerge.getList().toArray());
+
+    // Verify immutability
+    assertArrayEquals(new Integer[]{100}, mergeableList1.getList().toArray());
+    assertArrayEquals(new Integer[]{}, mergeableList2.getList().toArray());
+    assertArrayEquals(new Integer[]{1, 2, 3}, mergeableList3.getList().toArray());
   }
 }

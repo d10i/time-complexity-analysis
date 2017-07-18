@@ -111,7 +111,6 @@ The software will take a dynamic approach to determine the time complexity of th
 \label{sec:design:annotations}
 This module doesn't contain any implementation, only Java annotations. A Java annotation is a special syntax used to associate metadata to packages, classes, methods, parameters and variables. They can be read and interpreted by the compiler at compile time or by an agent at runtime. These annotations are used to inform the agent (see next section) about what methods to instrument and measure.
 
-
 \section{Agent}
 \label{sec:design:agent}
 This module contains the logic to instrument the algorithm under test. First the agent will detect which methods need to be instrumented based on annotations, whitelists and blacklists. Secondly the agent will instrument each of these methods by measuring the time passed during the method execution. This information will then be passed to the time recorder implementation (see next sections) which will take care of storing it for later processing.
