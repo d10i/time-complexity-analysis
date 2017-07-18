@@ -116,14 +116,14 @@ This module doesn't contain any implementation, only Java annotations. A Java an
 \label{sec:design:agent}
 This module contains the logic to instrument the algorithm under test. First the agent will detect which methods need to be instrumented based on annotations, whitelists and blacklists. Secondly the agent will instrument each of these methods by measuring the time passed during the method execution. This information will then be passed to the time recorder implementation (see next sections) which will take care of storing it for later processing.
 
-\noindent The built agent is a JAR\footnote{https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jarGuide.html} file which will need to be attached to the system by passing \code{-javaagent:jarpath[=options]}\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/package-summary.html} on the command-line, where \code{jarpath} is the path to the agent JAR while \code{options} are the options, such as whitelists and blacklists. This will instrument the algorithm under test at runtime when the instrumented methods are used for the first time.
+\noindent The built agent is a JAR\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jarGuide.html}} file which will need to be attached to the system by passing \code{-javaagent:jarpath[=options]}\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/package-summary.html}} on the command-line, where \code{jarpath} is the path to the agent JAR while \code{options} are the options, such as whitelists and blacklists. This will instrument the algorithm under test at runtime when the instrumented methods are used for the first time.
 
 
 \section{Time recorder API}
 This module defines the API needed for time recording. The API will need to provide the interface for three different features:
 \begin{itemize}
   \item \textbf{Start}: used by the system just before the algorithm's time complexity is about to be measured. This will reset any existing data in the time recorder implementation and start a fresh new recording
-  \item \textbf{Report time}: used by the agent when an instrumented has just finished running to inform the time recorder implementation about how long it took. The implementation will take care of storing this information for later processing
+  \item \textbf{Report time}: used by the agent when an instrumented has run to inform the time recorder implementation about the measurement. The implementation will take care of storing this information for later processing
   \item \textbf{Stop}: used by the system just after the algorithm is done running. This will shut down the time recorder implementation and return all the recorded data
 \end{itemize}
 

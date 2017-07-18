@@ -12,7 +12,7 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorder;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableTree;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.Measurement;
 
 import java.util.ArrayList;
 
@@ -102,7 +102,7 @@ public class AkkaTimeRecorder implements TimeRecorder {
   }
 
   @Override
-  public MergeableTree<Metrics> stop() throws Exception {
+  public MergeableTree<Measurement> stop() throws Exception {
     synchronized (AkkaTimeRecorder.class) {
       LOGGER.info("Stopping {}", this);
 
@@ -110,7 +110,7 @@ public class AkkaTimeRecorder implements TimeRecorder {
 
       Timeout timeout = new Timeout(Duration.create(60, "seconds"));
       Future<Object> future = Patterns.ask(service, new Save(), timeout);
-      MergeableTree<Metrics> tree = ((MergeableTree<Metrics>) Await.result(future, timeout.duration()));
+      MergeableTree<Measurement> tree = ((MergeableTree<Measurement>) Await.result(future, timeout.duration()));
 
       Future<Boolean> stopped = Patterns.gracefulStop(service, timeout.duration(), new Shutdown());
       LOGGER.debug("Awaiting actor system termination");

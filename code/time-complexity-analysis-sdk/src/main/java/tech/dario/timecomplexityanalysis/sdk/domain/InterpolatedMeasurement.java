@@ -2,12 +2,12 @@ package tech.dario.timecomplexityanalysis.sdk.domain;
 
 import tech.dario.timecomplexityanalysis.sdk.fitting.FittingFunction;
 
-public class InterpolatedMetrics {
+public class InterpolatedMeasurement {
 
   private final FittingFunction countFunction;
   private final FittingFunction averageFunction;
 
-  public InterpolatedMetrics(final FittingFunction countFunction, final FittingFunction averageFunction) {
+  public InterpolatedMeasurement(final FittingFunction countFunction, final FittingFunction averageFunction) {
     this.countFunction = countFunction;
     this.averageFunction = averageFunction;
   }
@@ -25,7 +25,7 @@ public class InterpolatedMetrics {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    InterpolatedMetrics that = (InterpolatedMetrics) o;
+    InterpolatedMeasurement that = (InterpolatedMeasurement) o;
 
     if (countFunction != null ? !countFunction.equals(that.countFunction) : that.countFunction != null) return false;
     return averageFunction != null ? averageFunction.equals(that.averageFunction) : that.averageFunction == null;

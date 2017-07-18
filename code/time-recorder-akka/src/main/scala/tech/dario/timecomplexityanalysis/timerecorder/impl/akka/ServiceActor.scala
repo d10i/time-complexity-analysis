@@ -4,7 +4,7 @@ import akka.actor._
 import akka.pattern.{ask, pipe}
 import akka.routing._
 import akka.util.Timeout
-import tech.dario.timecomplexityanalysis.timerecorder.tree.{MergeableList, MergeableNode, MergeableTree, Metrics}
+import tech.dario.timecomplexityanalysis.timerecorder.tree.{MergeableList, MergeableNode, MergeableTree, Measurement}
 
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -96,17 +96,17 @@ class ServiceActor extends Actor with ActorLogging {
         methodActionsListToTreeStep(tree, tree.getRootNode, ma)
       }
 
-      // Transform each node data from a method actions list to Metrics
+      // Transform each node data from a method actions list to Measurement
       import collection.JavaConverters._
-      val mergeableMetricsTreeFuture: Future[MergeableTree[Metrics]] = mergeableMethodActionsListTreeFuture.map(mergeableMethodActionListTree => {
-        mergeableMethodActionListTree.map[Metrics, MergeableNode[Metrics], MergeableTree[Metrics]](
-          (rootNode: MergeableNode[Metrics]) => new MergeableTree[Metrics](rootNode),
+      val mergeableMeasurementTreeFuture: Future[MergeableTree[Measurement]] = mergeableMethodActionsListTreeFuture.map(mergeableMethodActionListTree => {
+        mergeableMethodActionListTree.map[Measurement, MergeableNode[Measurement], MergeableTree[Measurement]](
+          (rootNode: MergeableNode[Measurement]) => new MergeableTree[Measurement](rootNode),
           (node: MergeableNode[MergeableList[MethodAction]]) => {
             if (node.getData == null) {
-              new MergeableNode[Metrics](node.getName, null)
+              new MergeableNode[Measurement](node.getName, null)
             } else {
               @tailrec
-              def methodActionsListToMetricsStep(res: Metrics, lastStartTime: Option[Long], list: List[MethodAction]): Metrics = {
+              def methodActionsListToMeasurementStep(res: Measurement, lastStartTime: Option[Long], list: List[MethodAction]): Measurement = {
                 list match {
                   case Nil =>
                     if (lastStartTime.isDefined) {
@@ -118,24 +118,24 @@ class ServiceActor extends Actor with ActorLogging {
                     if (lastStartTime.isDefined) {
                       throw new IllegalArgumentException(s"Found two consecutive MethodStarted actions")
                     } else {
-                      methodActionsListToMetricsStep(res, Some(nanoTime), tail)
+                      methodActionsListToMeasurementStep(res, Some(nanoTime), tail)
                     }
                   case (head@MethodFinished(_, nanoTime)) :: tail =>
                     if (lastStartTime.isEmpty) {
                       throw new IllegalArgumentException(s"Found two consecutive MethodFinished actions")
                     } else {
-                      methodActionsListToMetricsStep(res.mergeWith(Metrics.fromElapsedTime(nanoTime - lastStartTime.get)), None, tail)
+                      methodActionsListToMeasurementStep(res.mergeWith(Measurement.fromElapsedTime(nanoTime - lastStartTime.get)), None, tail)
                     }
                 }
               }
 
-              val metrics = methodActionsListToMetricsStep(new Metrics(0.0d, 0.0d), None, node.getData.getList.asScala.toList)
-              new MergeableNode[Metrics](node.getName, metrics)
+              val measurement = methodActionsListToMeasurementStep(new Measurement(0.0d, 0.0d), None, node.getData.getList.asScala.toList)
+              new MergeableNode[Measurement](node.getName, measurement)
             }
           })
       })
 
-      mergeableMetricsTreeFuture.pipeTo(sender())
+      mergeableMeasurementTreeFuture.pipeTo(sender())
 
     case Shutdown() =>
       log.debug("Received Shutdown message")

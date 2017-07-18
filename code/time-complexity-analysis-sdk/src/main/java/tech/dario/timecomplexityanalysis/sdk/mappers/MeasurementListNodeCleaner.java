@@ -3,38 +3,38 @@ package tech.dario.timecomplexityanalysis.sdk.mappers;
 import org.apache.commons.math3.distribution.TDistribution;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.AbstractNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableNode;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.Measurement;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableList;
 
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class MetricsListNodeCleaner<T extends AbstractNode<MergeableList<Metrics>, T>> implements Function<T, MergeableNode<MergeableList<Metrics>>> {
+public class MeasurementListNodeCleaner<T extends AbstractNode<MergeableList<Measurement>, T>> implements Function<T, MergeableNode<MergeableList<Measurement>>> {
 
   private final int numMaxOutliers;
 
-  public MetricsListNodeCleaner(final int numMaxOutliers) {
+  public MeasurementListNodeCleaner(final int numMaxOutliers) {
     this.numMaxOutliers = numMaxOutliers;
   }
 
   @Override
-  public MergeableNode<MergeableList<Metrics>> apply(T node) {
+  public MergeableNode<MergeableList<Measurement>> apply(T node) {
     if (node.getData() == null) {
       return new MergeableNode<>(node.getName(), null);
     }
 
-    final List<Metrics> metricsList = node.getData().getList();
-    final List<Metrics> metricsListWithoutOutliers = removeOutliers(metricsList);
-    return new MergeableNode<>(node.getName(), new MergeableList<>(metricsListWithoutOutliers));
+    final List<Measurement> measurementList = node.getData().getList();
+    final List<Measurement> measurementListWithoutOutliers = removeOutliers(measurementList);
+    return new MergeableNode<>(node.getName(), new MergeableList<>(measurementListWithoutOutliers));
   }
 
-  private List<Metrics> removeOutliers(List<Metrics> metricsList) {
+  private List<Measurement> removeOutliers(List<Measurement> measurementList) {
     // Using generalized extreme Studentized deviate (ESD)
     // See: http://www.itl.nist.gov/div898/handbook/eda/section3/eda35h3.htm
-    double[] xs = metricsList.stream().map(Metrics::getTotal).mapToDouble(m -> m).toArray();
+    double[] xs = measurementList.stream().map(Measurement::getTotal).mapToDouble(m -> m).toArray();
     if(xs.length <= numMaxOutliers) {
-      return metricsList;
+      return measurementList;
     }
 
     double alpha = 0.05d;
@@ -65,7 +65,7 @@ public class MetricsListNodeCleaner<T extends AbstractNode<MergeableList<Metrics
     final double finalValidRangeMin = validRangeMin;
     final double finalValidRangeMax = validRangeMax;
 
-    return metricsList
+    return measurementList
         .stream()
         .filter(
             m -> m.getTotal() >= finalValidRangeMin && m.getTotal() <= finalValidRangeMax

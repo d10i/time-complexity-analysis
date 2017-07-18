@@ -10,10 +10,10 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import tech.dario.timecomplexityanalysis.sdk.domain.AggregatedMetrics;
+import tech.dario.timecomplexityanalysis.sdk.domain.AggregatedMeasurement;
 import tech.dario.timecomplexityanalysis.sdk.fitting.*;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.AbstractNode;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.Measurement;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -25,7 +25,7 @@ import java.util.function.Function;
 
 import static java.awt.Color.*;
 
-public class AggregatedMetricsNodeDebugger<T extends AbstractNode<AggregatedMetrics, T>> implements Function<T, T> {
+public class AggregatedMeasurementNodeDebugger<T extends AbstractNode<AggregatedMeasurement, T>> implements Function<T, T> {
   private final static List<FittingFunctionFinder> FITTING_FUNCTION_FINDER_LIST = new ArrayList<FittingFunctionFinder>() {{
     add(new ConstantFunctionFinder());
     add(new LinearFunctionFinder());
@@ -76,7 +76,7 @@ public class AggregatedMetricsNodeDebugger<T extends AbstractNode<AggregatedMetr
     }
 
     XYSeries actualSeries = new XYSeries("Actual");
-    for (Map.Entry<Long, Metrics> aggregatedData : node.getData().getAggregatedData().entrySet()) {
+    for (Map.Entry<Long, Measurement> aggregatedData : node.getData().getAggregatedData().entrySet()) {
       double t = aggregatedData.getValue().getTotal() / aggregatedData.getValue().getCount();
       if(t > maxT) {
         maxT = t;
@@ -99,14 +99,14 @@ public class AggregatedMetricsNodeDebugger<T extends AbstractNode<AggregatedMetr
 
   private Collection<WeightedObservedPoint> getObservedPoints(T node) {
     final List<WeightedObservedPoint> observedPoints = new ArrayList<>();
-    for (Map.Entry<Long, Metrics> aggregatedData : node.getData().getAggregatedData().entrySet()) {
+    for (Map.Entry<Long, Measurement> aggregatedData : node.getData().getAggregatedData().entrySet()) {
       observedPoints.add(aggregatedDataToWeightedObservedPoint(aggregatedData));
     }
 
     return observedPoints;
   }
 
-  private WeightedObservedPoint aggregatedDataToWeightedObservedPoint(Map.Entry<Long, Metrics> aggregatedData) {
+  private WeightedObservedPoint aggregatedDataToWeightedObservedPoint(Map.Entry<Long, Measurement> aggregatedData) {
     return new WeightedObservedPoint(1.0d, aggregatedData.getKey(), aggregatedData.getValue().getTotal() / aggregatedData.getValue().getCount());
   }
 

@@ -1,6 +1,6 @@
 package tech.dario.timecomplexityanalysis.timerecorder.impl;
 
-import tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorderFactory;
+import tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorder;
 
 public class StaticTimeRecorderBinder {
 
@@ -14,11 +14,11 @@ public class StaticTimeRecorderBinder {
     throw new UnsupportedOperationException("This code should have never made it into time-recorder-api");
   }
 
-  public TimeRecorderFactory getTimeRecorderFactory() {
-    throw new UnsupportedOperationException("This code should never make it into time-recorder-api");
+  public TimeRecorder getTimeRecorder() {
+    throw new UnsupportedOperationException("This code should never made it into time-recorder-api");
   }
 
-  public String getTimeRecorderFactoryClassStr() {
-    throw new UnsupportedOperationException("This code should never make it into time-recorder-api");
+  public String getTimeRecorderClassStr() {
+    throw new UnsupportedOperationException("This code should never made it into time-recorder-api");
   }
 }

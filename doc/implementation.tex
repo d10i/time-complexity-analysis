@@ -11,7 +11,7 @@ As mentioned in previous chapters, one of the most important aspects of the prod
 \noindent Considering this, it would be very hard, if not impossible, to come up with the theory supporting the instrumentation and measuring logic. Instead, different implementations will be attempted, discussed and compared in the following sections. All the different approaches will of course keep performance and memory usage in mind.
 
 \subsection{Modules and dependencies}
-The modules discussed in the previous chapters are defined as Maven\footnote{https://maven.apache.org/} modules. Maven is a tool that can be used to build and manage Java-based projects. Modules can be defined via a \code{pom.xml} file in the module's root folder, specifying the module group ID, artifact ID, version and the dependencies it has on other Maven modules. Maven dependencies could be defined by the user or could be 3rd party modules that exist in Maven public repositories. An example of a \code{pom.xml} file can be find in Appendix \ref{sec:appendices:examplepomfile}.
+The modules discussed in the previous chapters are defined as Maven\footnote{\url{https://maven.apache.org/}} modules. Maven is a tool that can be used to build and manage Java-based projects. Modules can be defined via a \code{pom.xml} file in the module's root folder, specifying the module group ID, artifact ID, version and the dependencies it has on other Maven modules. Maven dependencies could be defined by the user or could be 3rd party modules that exist in Maven public repositories. An example of a \code{pom.xml} file can be find in Appendix \ref{sec:appendices:examplepomfile}.
 
 \subsection{Testing}
 The concept of test-driven development (TDD) is applied to all modules. Tests that describe requirements are written prior to the implementation, then the implementation is added ensuring that the tests pass. This process inspires confidence, makes the software more robust and allows for easy refactoring. On top of that, benchmarks are used across modules that are performance-critical, ensuring the CPU time they use is minimal.
@@ -24,7 +24,7 @@ For this product's implementation, logging is very useful for:
   \item Better understanding of the application flow, especially for the users that don't know about the underlying software implementation
 \end{itemize}
 
-\noindent Simple Logging Facade for Java (SLF4J)\footnote{https://www.slf4j.org/} is an abstraction over different Java logging frameworks such as \code{java.util.logging}, \code{logback} and \code{log4j}. All the modules described in the following sections use the SLF4J API for logging.
+\noindent Simple Logging Facade for Java (SLF4J)\footnote{\url{https://www.slf4j.org/}} is an abstraction over different Java logging frameworks such as \code{java.util.logging}, \code{logback} and \code{log4j}. All the modules described in the following sections use the SLF4J API for logging.
 
 \noindent The actual SLF4J implementation is only defined and configured at runtime, specifically in the root module (Time complexity analyser) via a Maven dependency and a configuration file. Logback is highly customisable and the log granularity can be configured on a per-package basis. During development it's often useful to show debugging information for the specific modules that are being worked on. Logging has an impact on performance so in the final implementation the logging should be minimal. Logback makes it very easy to change configuration via a \code{logback.xml} file that lives in the \code{src/main/resources} folder.
 
@@ -34,8 +34,9 @@ For this product's implementation, logging is very useful for:
 Code snippets included in the following sections have some differences compared to real product code:
 \begin{itemize}
   \item Indentation in this document is 1 space character, compared to 2 spaces in the real code
-  \item Log lines are removed from this document
-  \item Some keywords, such as \code{final}, are removed from this document
+  \item Log lines are removed
+  \item Imports are omitted
+  \item Some keywords, such as \code{final}, are removed
 \end{itemize}
 
 \noindent All these differences are purely made for a question of space and to only show the part of the code that is relevant and important.
@@ -52,6 +53,7 @@ public %%@interface%% Measured {
 
 
 \section{Agent}
+\label{sec:implementation:agent} 
 This module defines a package \code{tech.dario.timecomplexityanalysis.agent} containing the logic to instrument methods in order to measure how long they took and report it to the time recorder implementation. When built, this module produces a JAR file that can be used as a Java agent, as explained in Section \ref{sec:design:agent}.
 
 \noindent The \code{MeasuringAgent} class in Listing \ref{lis:measuringagent} defines a \code{premain} method which is called after the Java Virtual Machine (JVM) is initialized and before the \code{main} method is called. This method registers a \code{MeasuringClassFileTransformer} which instruments classes as they get loaded. If the path to a configuration file is passed to the agent as an argument, the file is parsed and the configuration parameters are passed to the class file transformer. Otherwise it uses the default configuration (see Section \ref{sec:implementation:agent:configuration}).
@@ -93,7 +95,7 @@ The agent can be configured with four different parameters:
   \item \textbf{\code{excludeStandardScalaLibrary}}:  a flag indicating whether to exclude classes that are part of the standard Scala library\footnote{\code{scala} package}. Default: \code{true}
 \end{enumerate}
 
-\noindent Listing \ref{lis:config1} shows an example of configuration which instructs the agent to insturment any method in the \code{tech.dario.timecomplexityanalysis.testalgorithm} package, excluding any method starting with \code{get}. The regexes specified in the \code{whitelist} and \code{blacklist} parameters should be in a format accepted by the \code{compile} method of \code{java.util.regex.Pattern}\footnote{https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html}. For example, method \code{tech.dario.timecomplexityanalysis.testalgorithm.MyClass.getName()} is both whitelisted and blacklisted. The whitelist regex matches \code{tech.dario.timecomplexityanalysis.testalgorithm} while the blacklist element matches \code{tech.dario.timecomplexityanalysis.testalgorithm.MyClass.get}. Because the blacklist element is more targeted, it takes priority over the whitelist element so the method is not instrumented (see Section \ref{sec:implementation:agent:transformation} for more details).
+\noindent Listing \ref{lis:config1} shows an example of configuration which instructs the agent to insturment any method in the \code{tech.dario.timecomplexityanalysis.testalgorithm} package, excluding any method starting with \code{get}. The regexes specified in the \code{whitelist} and \code{blacklist} parameters should be in a format accepted by the \code{compile} method of \code{java.util.regex.Pattern}\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html}}. For example, method \code{tech.dario.timecomplexityanalysis.testalgorithm.MyClass.getName()} is both whitelisted and blacklisted. The whitelist regex matches \code{tech.dario.timecomplexityanalysis.testalgorithm} while the blacklist element matches \code{tech.dario.timecomplexityanalysis.testalgorithm.MyClass.get}. Because the blacklist element is more targeted, it takes priority over the whitelist element so the method is not instrumented (see Section \ref{sec:implementation:agent:transformation} for more details).
 
 \begin{lstlisting}[breaklines,caption={Configuration JSON file example},label=lis:config1,style=json]
 {
@@ -143,7 +145,7 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
 }
 \end{lstlisting}
 
-\noindent \code{MeasuringClassFileTransformer} implements \code{interface} \code{java.lang.instrument.ClassFileTransformer}\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html} which defines method \code{transform} shown in Listing \ref{lis:measuringclassfiletransformer:transform}. By implementing this interface, \code{MetricAgent} can use \code{MeasuringClassFileTransformer} as one of its transformers and because of that each class being loaded in the JVM will pass through this transformer for optional instrumentation. This class' responsibility is to determine whether the class being loaded should be instrumented and if so to instrument it.
+\noindent \code{MeasuringClassFileTransformer} implements \code{interface} \code{java.lang.instrument.ClassFileTransformer}\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassFileTransformer.html}} which defines method \code{transform} shown in Listing \ref{lis:measuringclassfiletransformer:transform}. By implementing this interface, \code{MetricAgent} can use \code{MeasuringClassFileTransformer} as one of its transformers and because of that each class being loaded in the JVM will pass through this transformer for optional instrumentation. This class' responsibility is to determine whether the class being loaded should be instrumented and if so to instrument it.
 
 \begin{lstlisting}[breaklines,caption={$MeasuringClassFileTransformer.transform$ implementation},label=lis:measuringclassfiletransformer:transform]
 $$@Override
@@ -182,9 +184,9 @@ public byte[] transform(
   \item It's part of the \code{javaassist} package or the \code{tech.dario.timecomplexityanalysis.timerecorder} package (this is to avoid instrumenting classes that are needed for instrumentation itself)
 \end{itemize}
 
-\noindent If the class is excluded, the method returns \code{null} which instructs the JVM that this class should be loaded without any instrumentation applied. Otherwise it loads the class from the default \code{ClassPool}\footnote{https://jboss-javassist.github.io/javassist/html/javassist/ClassPool.html} and uses private method \code{isClassExcludedByImplementation} to check whether the class should be excluded based on its implementation. In the context of instrumentation the term \enquote{class} is used in a more generic way and includes annotations, arrays, enums, interfaces and primitives too. \code{MeasuringClassFileTransformer} excludes any class that is not an actual class (i.e. defined with the \code{class} keyword) from instrumentation by returning \code{null}.
+\noindent If the class is excluded, the method returns \code{null} which instructs the JVM that this class should be loaded without any instrumentation applied. Otherwise it loads the class from the default \code{ClassPool}\footnote{\url{https://jboss-javassist.github.io/javassist/html/javassist/ClassPool.html}} and uses private method \code{isClassExcludedByImplementation} to check whether the class should be excluded based on its implementation. In the context of instrumentation the term \enquote{class} is used in a more generic way and includes annotations, arrays, enums, interfaces and primitives too. \code{MeasuringClassFileTransformer} excludes any class that is not an actual class (i.e. defined with the \code{class} keyword) from instrumentation by returning \code{null}.
 
-\noindent Now the time recorder is declared and instantiated in the class by using the private method \code{declareAndInstantiateTimeRecorder}. It instruments the class by declaring a private, static and final field called \code{\_AGENT\_TIME\_RECORDER} as shown in Listing \ref{lis:measuringclassfiletransformer:agenttimerecorder}. Note that at this point the instrumented class is using the time recorder API to report time and is unaware of what the actual time recorder implementation is (see implementation in Section \ref{sec:implementation:timerecorderapi}).
+\noindent Now the time recorder is declared and instantiated in the class by using the private method \code{declareAndInstantiateTimeRecorder}. It instruments the class by declaring a private, static and final field called \code{\_AGENT\_TIME\_RECORDER} as shown in Listing \ref{lis:measuringclassfiletransformer:agenttimerecorder}. Note that at this point the instrumented class is using the time recorder API to report time and is unaware of what the actual time recorder implementation is. Section \ref{sec:implementation:timerecorderapi} will explain how the time recorder implementation is injected into the instrumented classes.
 
 \begin{lstlisting}[breaklines,caption={$\_AGENT\_TIME\_RECORDER$ initialization},label=lis:measuringclassfiletransformer:agenttimerecorder]
 private final static tech.dario.timecomplexityanalysis.timerecorder.api.TimeRecorder _AGENT_TIME_RECORDER = tech.dario.timecomplexityanalysis.timerecorder.api.StaticTimeRecorderFactory.getTimeRecorder();
@@ -265,7 +267,7 @@ public void myMethod() {
 }
 \end{lstlisting}
 
-\noindent Tests showed how this implementation always slowed down the instrumented method by a constant amount of time in the order of magnitude of \SI{10}{\micro\second} on a \SI{2.8}{\giga\hertz} machine. This is an enormous amount of time that would have a big impact on the observer effect, hence drastically compromising the time complexity calculation. Profiling the agent showed how the culprit is the call to get the stack trace.
+\noindent Benchmarks showed how this implementation always slowed down the instrumented method by a constant amount of time in the order of magnitude of \SI{10}{\micro\second} on a \SI{2.8}{\giga\hertz} machine. This is an enormous amount of time that would have a big impact on the observer effect, hence drastically compromising the time complexity calculation. Profiling the agent showed how the culprit is the call to get the stack trace.
 
 \noindent The instrumentation logic has to be as light as possible to not have an impact on the measurement of the time complexity of the algorithm under test. The second approach (see Listing \ref{lis:measuringclassfiletransformer:secondmethodinstrumentationexample}) removes the slow call to get the stack trace and instead simply informs the time recorder of when the method has started and when it has finished, passing along the unique method long name (which consists of package name, class name, method name and arguments types). The time recorder will have more responsibilities and will be a bit more complicated because, on top of having to calculate the time taken it will also require to work out the stack trace of each time report. Delegating the complex logic to the time recorder is a much better approach as it can be done in a separate thread and/or after all the recording rounds have run, hence greatly reducing the observer effect.
 
@@ -285,7 +287,7 @@ public void myMethod() {
 
 \subsection{Limitations}
 \label{sec:implementation:agent:limitations}
-Some classes are pre-loaded in the JVM, such as some of the classes that are part of the Java standard library. Because they're pre-loaded, these classes don't go though the transformer and for that reason are never instrumented. Java could retransform pre-loaded classes but the documentation\footnote{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html} states:
+Some classes are pre-loaded in the JVM, such as some of the classes that are part of the Java standard library. Because they're pre-loaded, these classes don't go though the transformer and for that reason are never instrumented. Java could retransform pre-loaded classes but the documentation\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html}} states:
 
 \enquote{The retransformation must not add, remove or rename fields or methods, change the signatures of methods, or change inheritance}
 
@@ -293,6 +295,60 @@ Some classes are pre-loaded in the JVM, such as some of the classes that are par
 
 \section{Time recorder API}
 \label{sec:implementation:timerecorderapi}
+The main responsibility of this module is to provide an abstraction over the actual time recording implementation. The main interface is shown in Listing \ref{lis:timerecorderapi:timerecorderinterface} and has 4 methods:
+\begin{itemize}
+  \item \textbf{\code{start}}: used when a new recording is starting, so that the internal data structures used by the implementation, if any, can be initialised
+  \item \textbf{\code{methodStarted}}: used when a new instrumented method is starting doing its work. The subject instrumented method long name is passed to the implementation
+  \item \textbf{\code{methodFinished}}: used when a new instrumented method is finished doing its work. The subject instrumented method long name is passed to the implementation
+  \item \textbf{\code{stop}}: used when the current recording is finished (i.e. no more instrumented methods will start or stop from this point on). The implementation can then transform its internal data structures and return the recorded data as an instance of \code{MergeableTree<Measurement>} (see next sections)
+\end{itemize}
+
+\begin{lstlisting}[breaklines,caption={TimeRecorder interface},label=lis:timerecorderapi:timerecorderinterface]
+public interface TimeRecorder {
+ void start();
+
+ void methodStarted(String methodLongName);
+ void methodFinished(String methodLongName);
+
+ MergeableTree<Measurement> stop() throws Exception;
+}
+\end{lstlisting}
+
+\noindent As mentioned before, the time recorder implementation to use will be decided by the root module (Time complexity analyser). This means that  the algorithm under test, whose methods are instrumented, must not be tied to the time recorder implementation, but must rely on the API instead. The challenge that arises is then how to ensure that the instrumented methods have access to the time recorder implementation, in order to call its \code{methodStarted} and \code{methodFinished} methods. Usually, when an object needs to use another object in order to do its job, the former takes the latter as a constructor argument. An entity responsible for running the program will then ensure that all the long-lived objects (often called services) are created and passed correctly to the constructors of all the services. This pattern is known as dependency injection \footnote{\url{https://martinfowler.com/articles/injection.html}}. Unfortunately, this pattern cannot be applied in this circumstance, as none of the modules have control over how the objects inside the algorithm under test are instantiated.
+
+\noindent A good alternative is to retrieve the implementation via the call to a public static method defined in the API, as previously seen in Listing \ref{lis:measuringclassfiletransformer:agenttimerecorder}. Again, the problem is that the API does not know about the implementation, but there is a small trick that allows this approach to work. The class \code{StaticTimeRecorderFactory} has a static method \code{getTimeRecorder()} to get the time recorder implementation. It is inspired by SLF4J \code{LoggerFactory}, which has a static method \code{getLogger(...)} to get the logger implementation\footnote{\url{https://github.com/qos-ch/slf4j/blob/master/slf4j-api/src/main/java/org/slf4j/LoggerFactory.java}}. When \code{StaticTimeRecorderFactory.getTimeRecorder()} is called, it uses \code{StaticTimeRecorderBinder} to get the time recorder implementation. The API contains a dummy implementation of \code{StaticTimeRecorderBinder} (see Listing \ref{lis:timerecorderapi:statictimerecorderbinderdummy}), but the idea is to swap this with the real implementation when the implementation is added as a Maven dependency. In fact this class is only used so that the whole module can be compiled, but the associated compiled \code{.class} file is removed just before packaging it inside the Maven artifact.
+
+\begin{lstlisting}[breaklines,caption={StaticTimeRecorderBinder dummy implementation},label=lis:timerecorderapi:statictimerecorderbinderdummy]
+package tech.dario.timecomplexityanalysis.timerecorder.impl;
+
+public class StaticTimeRecorderBinder {
+ private static final StaticTimeRecorderBinder SINGLETON = new StaticTimeRecorderBinder();
+
+ public static final StaticTimeRecorderBinder getSingleton() {
+  return SINGLETON;
+ }
+
+ private StaticTimeRecorderBinder() {
+  throw new UnsupportedOperationException("This code should have never made it into time-recorder-api");
+ }
+
+ public TimeRecorder getTimeRecorder() {
+  throw new UnsupportedOperationException("This code should never made it into time-recorder-api");
+ }
+
+ public String getTimeRecorderFactoryClassStr() {
+  throw new UnsupportedOperationException("This code should never made it into time-recorder-api");
+ }
+}
+\end{lstlisting}
+
+In order for this trick to work, the time recorder implementation will have to define the class so that its fully qualified name is \code{tech/dario/timecomplexityanalysis/timerecorder/impl/StaticTimeRecorderBinder}. The class will need to define the same 3 public methods:
+
+\begin{itemize}
+  \item \textbf{\code{static} \code{StaticTimeRecorderBinder} \code{getSingleton()}}: used by \code{StaticTimeRecorderFactory} to get a singleton instance of the \code{StaticTimeRecorderBinder}
+  \item \textbf{\code{TimeRecorder} \code{getTimeRecorder()}}: used to get the time recorder
+  \item \textbf{\code{String} \code{getTimeRecorderFactoryClassStr()}} used to return the implementation name (purely used to distinguish it from other implementations)
+\end{itemize}
 
 TODO by 18/07
 

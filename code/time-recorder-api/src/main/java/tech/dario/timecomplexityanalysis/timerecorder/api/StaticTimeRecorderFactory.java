@@ -23,28 +23,23 @@ public final class StaticTimeRecorderFactory {
   private StaticTimeRecorderFactory() {
   }
 
-  public static TimeRecorder getTimeRecorder() {
-    final TimeRecorderFactory timeRecorderFactory = getTimeRecorderFactory();
-    return timeRecorderFactory.getTimeRecorder();
-  }
-
   public static void reset() {
     INITIALIZATION_STATE = StaticTimeRecorderFactoryStatus.UNINITIALIZED;
   }
 
-  private static TimeRecorderFactory getTimeRecorderFactory() {
+  public static TimeRecorder getTimeRecorder() {
     if (INITIALIZATION_STATE == StaticTimeRecorderFactoryStatus.UNINITIALIZED || INITIALIZATION_STATE == StaticTimeRecorderFactoryStatus.ONGOING_INITIALIZATION) {
       synchronized (StaticTimeRecorderFactory.class) {
         if (INITIALIZATION_STATE == StaticTimeRecorderFactoryStatus.UNINITIALIZED) {
           INITIALIZATION_STATE = StaticTimeRecorderFactoryStatus.ONGOING_INITIALIZATION;
-          performInitialization();
+          bind();
         }
       }
     }
 
     switch (INITIALIZATION_STATE) {
       case SUCCESSFUL_INITIALIZATION:
-        return StaticTimeRecorderBinder.getSingleton().getTimeRecorderFactory();
+        return StaticTimeRecorderBinder.getSingleton().getTimeRecorder();
       case FAILED_INITIALIZATION:
         throw new IllegalStateException("tech.dario.timecomplexityanalysis.timerecorder.api.StaticTimeRecorderFactory could not be successfully initialized");
       case IMPL_NOT_FOUND_INITIALIZATION:
@@ -52,10 +47,6 @@ public final class StaticTimeRecorderFactory {
     }
 
     throw new IllegalStateException("Unreachable code");
-  }
-
-  private static void performInitialization() {
-    bind();
   }
 
   private static void bind() {
@@ -116,7 +107,7 @@ public final class StaticTimeRecorderFactory {
 
   private static void reportActualBinding(Set<URL> binderPathSet) {
     if (isAmbiguousStaticTimeRecorderBinderPathSet(binderPathSet)) {
-      LOGGER.error("Actual binding is of type [" + StaticTimeRecorderBinder.getSingleton().getTimeRecorderFactoryClassStr() + "]");
+      LOGGER.error("Actual binding is of type [" + StaticTimeRecorderBinder.getSingleton().getTimeRecorderClassStr() + "]");
     }
   }
 

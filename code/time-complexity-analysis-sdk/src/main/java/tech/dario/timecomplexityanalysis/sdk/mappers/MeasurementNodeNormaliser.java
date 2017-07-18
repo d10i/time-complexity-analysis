@@ -2,13 +2,13 @@ package tech.dario.timecomplexityanalysis.sdk.mappers;
 
 import tech.dario.timecomplexityanalysis.timerecorder.tree.AbstractNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableNode;
-import tech.dario.timecomplexityanalysis.timerecorder.tree.Metrics;
+import tech.dario.timecomplexityanalysis.timerecorder.tree.Measurement;
 
 import java.util.function.Function;
 
-public class MetricsNodeNormaliser<T extends AbstractNode<Metrics, T>> implements Function<T, MergeableNode<Metrics>> {
+public class MeasurementNodeNormaliser<T extends AbstractNode<Measurement, T>> implements Function<T, MergeableNode<Measurement>> {
   @Override
-  public MergeableNode<Metrics> apply(T node) {
+  public MergeableNode<Measurement> apply(T node) {
     if (node.getData() == null) {
       return new MergeableNode<>(node.getName(), null);
     }
@@ -21,7 +21,7 @@ public class MetricsNodeNormaliser<T extends AbstractNode<Metrics, T>> implement
 
     double countMultiplier = (node.getParent() != null && node.getParent().getData() != null) ? node.getParent().getData().getCount() : 1.0d;
 
-    final Metrics newMetrics = new Metrics(node.getData().getCount() / countMultiplier, total / countMultiplier);
-    return new MergeableNode<>(node.getName(), newMetrics);
+    final Measurement newMeasurement = new Measurement(node.getData().getCount() / countMultiplier, total / countMultiplier);
+    return new MergeableNode<>(node.getName(), newMeasurement);
   }
 }

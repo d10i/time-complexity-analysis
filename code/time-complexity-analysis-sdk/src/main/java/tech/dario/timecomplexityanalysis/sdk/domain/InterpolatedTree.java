@@ -1,20 +1,20 @@
 package tech.dario.timecomplexityanalysis.sdk.domain;
 
-import tech.dario.timecomplexityanalysis.sdk.mappers.AggregatedMetricsNodeAnalyser;
-import tech.dario.timecomplexityanalysis.sdk.mappers.AggregatedMetricsNodeDebugger;
+import tech.dario.timecomplexityanalysis.sdk.mappers.AggregatedMeasurementNodeAnalyser;
+import tech.dario.timecomplexityanalysis.sdk.mappers.AggregatedMeasurementNodeDebugger;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableTree;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.SimpleNode;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.SimpleTree;
 
-public class InterpolatedTree extends SimpleTree<InterpolatedMetrics> {
+public class InterpolatedTree extends SimpleTree<InterpolatedMeasurement> {
 
-  private InterpolatedTree(final SimpleNode<InterpolatedMetrics> rootNode) {
+  private InterpolatedTree(final SimpleNode<InterpolatedMeasurement> rootNode) {
     super(rootNode);
   }
 
-  public static InterpolatedTree fromAggregatedMetrics(final MergeableTree<AggregatedMetrics> aggregatedTree) {
-    // aggregatedTree.map(MergeableTree::new, new AggregatedMetricsNodeDebugger<>());
-    final SimpleTree<InterpolatedMetrics> interpolatedTree = aggregatedTree.map(SimpleTree::new, new AggregatedMetricsNodeAnalyser<>());
+  public static InterpolatedTree fromAggregatedMeasurement(final MergeableTree<AggregatedMeasurement> aggregatedTree) {
+    // aggregatedTree.map(MergeableTree::new, new AggregatedMeasurementNodeDebugger<>());
+    final SimpleTree<InterpolatedMeasurement> interpolatedTree = aggregatedTree.map(SimpleTree::new, new AggregatedMeasurementNodeAnalyser<>());
     return new InterpolatedTree(interpolatedTree.getRootNode());
   }
 
@@ -22,13 +22,13 @@ public class InterpolatedTree extends SimpleTree<InterpolatedMetrics> {
     return calculate(n, getRootNode());
   }
 
-  private double calculate(final long n, final SimpleNode<InterpolatedMetrics> node) {
+  private double calculate(final long n, final SimpleNode<InterpolatedMeasurement> node) {
     double childrenSum = 0.0d;
-    for (final SimpleNode<InterpolatedMetrics> childNode : node.getChildren().values()) {
+    for (final SimpleNode<InterpolatedMeasurement> childNode : node.getChildren().values()) {
       childrenSum += calculate(n, childNode);
     }
 
-    final InterpolatedMetrics nodeData = node.getData();
+    final InterpolatedMeasurement nodeData = node.getData();
     if(nodeData == null) {
       // Root node
       return childrenSum;
