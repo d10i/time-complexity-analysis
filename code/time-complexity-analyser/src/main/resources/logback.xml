@@ -7,7 +7,14 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <logger name="tech.dario.timecomplexityanalysis.agent.MeasuringClassFileTransformer" level="OFF"/>
+    <logger name="tech.dario.timecomplexityanalysis.timerecorder" level="DEBUG"/>
+    <logger name="tech.dario.timecomplexityanalysis.sdk" level="DEBUG"/>
+    <logger name="tech.dario.timecomplexityanalysis.sdk.mappers.AggregatedMeasurementNodeDebugger" level="DEBUG"/>
+    <logger name="tech.dario.timecomplexityanalysis.analyser.Main" level="DEBUG"/>-->
+    <logger name="tech.dario.timecomplexityanalysis.analyser.SpeedAndAccuracyTest" level="DEBUG"/>
+
+    <root level="OFF">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

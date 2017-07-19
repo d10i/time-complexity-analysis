@@ -7,17 +7,6 @@ public class Measurement implements Mergeable<Measurement> {
   private final double count;
   private final double total;
 
-  private static final DecimalFormat DECIMAL_FORMAT;
-  static {
-    DECIMAL_FORMAT = new DecimalFormat();
-    DECIMAL_FORMAT.setMaximumFractionDigits(1);
-    DECIMAL_FORMAT.setMinimumFractionDigits(1);
-    DECIMAL_FORMAT.setGroupingSize(3);
-    DECIMAL_FORMAT.setRoundingMode(RoundingMode.HALF_UP);
-    DECIMAL_FORMAT.setDecimalSeparatorAlwaysShown(true);
-    DECIMAL_FORMAT.setGroupingUsed(true);
-  }
-
   public Measurement(double count, double total) {
     this.count = count;
     this.total = total;
@@ -25,6 +14,10 @@ public class Measurement implements Mergeable<Measurement> {
 
   public static Measurement fromElapsedTime(long elapsedTime) {
     return new Measurement(1, elapsedTime);
+  }
+
+  public static Measurement empty() {
+    return new Measurement(0.0d, 0.0d);
   }
 
   public double getCount() {
@@ -67,12 +60,8 @@ public class Measurement implements Mergeable<Measurement> {
 
   @Override
   public String toString() {
-    return "{count: " + count +
-            ", tot: " + toMicroSeconds(total) +
-            ", avg: " + toMicroSeconds(total / count) + "}";
-  }
-
-  private String toMicroSeconds(double nanoSeconds) {
-    return DECIMAL_FORMAT.format(nanoSeconds / 1000) + " μs";
+    return "{\"count\": " + count +
+            ", \"tot\": " + total +
+            ", \"avg\": " + total / count + "}";
   }
 }

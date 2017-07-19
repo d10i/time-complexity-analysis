@@ -4,15 +4,19 @@ import java.util.Iterator;
 
 public class ExponentialIterator implements Iterator<Long> {
   private final int numIterations;
-  private final int maxN;
   private int i;
   private final double base;
+  private final int minN;
 
-  public ExponentialIterator(int numIterations, int maxN) {
+  public ExponentialIterator(int numIterations, int base) {
+    this(numIterations, base, 1);
+  }
+
+  public ExponentialIterator(int numIterations, int base, int minN) {
     this.numIterations = numIterations;
-    this.maxN = maxN;
     this.i = 0;
-    this.base = Math.pow(Math.E, Math.log(maxN) / (numIterations - 1.0d));
+    this.base = base;
+    this.minN = minN;
   }
 
   @Override
@@ -22,10 +26,10 @@ public class ExponentialIterator implements Iterator<Long> {
 
   @Override
   public Long next() {
-    if(!hasNext()) {
+    if (!hasNext()) {
       return null;
     }
 
-    return Math.round(Math.pow(base, i++));
+    return Math.round(minN * Math.pow(base, i++));
   }
 }

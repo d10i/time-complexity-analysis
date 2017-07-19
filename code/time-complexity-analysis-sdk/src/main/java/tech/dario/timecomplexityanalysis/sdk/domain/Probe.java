@@ -7,4 +7,7 @@ public interface Probe {
   int getNumRecordingRounds();
   int getNumMaxOutliers();
   Iterator<Long> buildNIterator();
+  float getFittingFunctionTolerance();
+  float getAssumeConstantThreshold();
+  float getAssumeConstantMaxRmsRelativeError();
 }

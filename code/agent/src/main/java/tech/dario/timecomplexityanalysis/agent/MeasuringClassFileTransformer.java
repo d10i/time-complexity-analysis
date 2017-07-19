@@ -13,7 +13,6 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.IntSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -105,12 +104,12 @@ public class MeasuringClassFileTransformer implements ClassFileTransformer {
 
   private boolean isClassExcludedByName(final String fullyQualifiedClassName) {
     if (config.isExcludeStandardJavaLibrary() && isMatchAtLeastOneInSet(fullyQualifiedClassName, STANDARD_JAVA_LIBRARY)) {
-      LOGGER.debug("Skipping class {}: standard Java LIBRARY", fullyQualifiedClassName);
+      LOGGER.debug("Skipping class {}: standard Java library", fullyQualifiedClassName);
       return true;
     }
 
     if (config.isExcludeStandardScalaLibrary() && isMatchAtLeastOneInSet(fullyQualifiedClassName, STANDARD_SCALA_LIBRARY)) {
-      LOGGER.debug("Skipping class {}: standard Scala LIBRARY", fullyQualifiedClassName);
+      LOGGER.debug("Skipping class {}: standard Scala library", fullyQualifiedClassName);
       return true;
     }
 

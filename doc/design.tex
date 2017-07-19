@@ -30,67 +30,67 @@ The software will take a dynamic approach to determine the time complexity of th
         Time complexity analyser 
       \end{tabular}
     };
-              
+                  
     % SECOND LAYER
     \node[state,
       node distance=5.0em,
-      below of=TIME_COMPLEXITY_ANALYSER] (TIME_COMPLEXITY_ANALYSIS_SDK) 
+    below of=TIME_COMPLEXITY_ANALYSER] (TIME_COMPLEXITY_ANALYSIS_SDK) 
     {
       \begin{tabular}{c}
         Time complexity analysis SDK 
       \end{tabular}
     };
-              
+                  
     \node[state,
       node distance=14.0em,
       left of=TIME_COMPLEXITY_ANALYSIS_SDK,
-      xshift=-2.0em] (TIME_RECORDER_IMPL) 
+    xshift=-2.0em] (TIME_RECORDER_IMPL) 
     {
       \begin{tabular}{c}
         Time recorder implementation 
       \end{tabular}
     };
-              
+                  
     \node[state,
       node distance=14.0em,
-      right of=TIME_COMPLEXITY_ANALYSIS_SDK] (TEST_ALGORITHM) 
+    right of=TIME_COMPLEXITY_ANALYSIS_SDK] (TEST_ALGORITHM) 
     {
       \begin{tabular}{c}
         Algorithm under test 
       \end{tabular}
     };
-              
+                  
     % THIRD LAYER
     \node[state,
       node distance=5.0em,
       below of=TIME_RECORDER_IMPL,
-      xshift=-2.2em] (AGENT) 
+    xshift=-2.2em] (AGENT) 
     {
       \begin{tabular}{c}
         Agent 
       \end{tabular}
     };
-            
+                
     \node[state,
       node distance=5.0em,
       below of=TIME_RECORDER_IMPL,
-      xshift=+8.0em] (TIME_RECORDER_API) 
+    xshift=+8.0em] (TIME_RECORDER_API) 
     {
       \begin{tabular}{c}
         Time recorder API 
       \end{tabular}
     };
-              
+                  
     % FOURTH LAYER
     \node[state,
       node distance=5.0em,
-      below of=TIME_RECORDER_API] (ANNOTATIONS) 
+    below of=TIME_RECORDER_API] (ANNOTATIONS) 
     {
       \begin{tabular}{c}
         Annotations 
       \end{tabular}
     };
-            
+                
     % LINES
     \path 
     (TIME_COMPLEXITY_ANALYSER) edge (TIME_RECORDER_IMPL)

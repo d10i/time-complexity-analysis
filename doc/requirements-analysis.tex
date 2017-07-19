@@ -27,136 +27,136 @@ In a raw call tree, each node contains a measurement for a specific method in a 
   \centering
   \begin{tikzpicture}[->,>=stealth']
     \coordinate (START);
-
+    
     % FIRST LAYER
     \node[state,
       node distance=6.0em,
-      below of=START] (METHOD_1) 
+    below of=START] (METHOD_1) 
     {
       \begin{tabular}{c}
-        $method1$\\
-        \SI{2.42890}{\second}
+        $method1$             \\
+        \SI{2.42890}{\second} 
       \end{tabular}
     };
-
-
+    
+    
     % SECOND LAYER
     \node[state,
       node distance=6.0em,
-      below of=METHOD_1] (METHOD_2) 
+    below of=METHOD_1] (METHOD_2) 
     {
       \begin{tabular}{c}
-        $method2$\\
-        \SI{2.42882}{\second}
+        $method2$             \\
+        \SI{2.42882}{\second} 
       \end{tabular}
     };
-
-
+    
+    
     % THIRD LAYER
     \node[state,
       node distance=6.0em,
-      below of=METHOD_2] (METHOD_5) 
+    below of=METHOD_2] (METHOD_5) 
     {
       \begin{tabular}{c}
-        $method5$\\
-        \SI{44.0333}{\milli\second}
+        $method5$                   \\
+        \SI{44.0333}{\milli\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    left of=METHOD_5] (METHOD_4) 
+    {
+      \begin{tabular}{c}
+        $method4$                   \\
+        \SI{38.7951}{\milli\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    left of=METHOD_4] (METHOD_3) 
+    {
+      \begin{tabular}{c}
+        $method3$                                      \\
+        \SI{38.7226}{\milli\second}      \end{tabular} 
+        };                                             
+                                                       
+        \node[state,                                   
+        node distance=6.75em,                          
+        right of=METHOD_5] (METHOD_6)                  
+        {                                              
+        \begin{tabular}{c}                             
+        $method6$                                      \\
+        \SI{96.8115}{\milli\second}                    
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    right of=METHOD_6] (METHOD_7) 
+    {
+      \begin{tabular}{c}
+        $method7$                   \\
+        \SI{19.1530}{\micro\second} 
       \end{tabular}
     };
     
-    \node[state,
-      node distance=6.75em,
-      left of=METHOD_5] (METHOD_4) 
-    {
-      \begin{tabular}{c}
-        $method4$\\
-        \SI{38.7951}{\milli\second}
-      \end{tabular}
-    };
     
-    \node[state,
-      node distance=6.75em,
-      left of=METHOD_4] (METHOD_3) 
-    {
-      \begin{tabular}{c}
-        $method3$\\
-        \SI{38.7226}{\milli\second}      \end{tabular}
-    };
-    
-    \node[state,
-      node distance=6.75em,
-      right of=METHOD_5] (METHOD_6) 
-    {
-      \begin{tabular}{c}
-        $method6$\\
-        \SI{96.8115}{\milli\second}
-      \end{tabular}
-    };
-    
-    \node[state,
-      node distance=6.75em,
-      right of=METHOD_6] (METHOD_7) 
-    {
-      \begin{tabular}{c}
-        $method7$\\
-        \SI{19.1530}{\micro\second}
-      \end{tabular}
-    };
-
-
     % FOURTH LAYER
     \node[state,
       node distance=6.0em,
-      below of=METHOD_5] (METHOD_7B) 
+    below of=METHOD_5] (METHOD_7B) 
     {
       \begin{tabular}{c}
-        $method7$\\
-        \SI{17.3212}{\micro\second}
+        $method7$                   \\
+        \SI{17.3212}{\micro\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    left of=METHOD_7B] (METHOD_8) 
+    {
+      \begin{tabular}{c}
+        $method8$                   \\
+        \SI{3.98597}{\milli\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    right of=METHOD_7B] (METHOD_9) 
+    {
+      \begin{tabular}{c}
+        $method9$                   \\
+        \SI{3.39835}{\milli\second} 
       \end{tabular}
     };
     
-    \node[state,
-      node distance=6.75em,
-      left of=METHOD_7B] (METHOD_8) 
-    {
-      \begin{tabular}{c}
-        $method8$\\
-        \SI{3.98597}{\milli\second}
-      \end{tabular}
-    };
-    
-    \node[state,
-      node distance=6.75em,
-      right of=METHOD_7B] (METHOD_9) 
-    {
-      \begin{tabular}{c}
-        $method9$\\
-        \SI{3.39835}{\milli\second}
-      \end{tabular}
-    };
-
     \node[state,
       node distance=6.0em,
-      below of=METHOD_7] (METHOD_10) 
+    below of=METHOD_7] (METHOD_10) 
     {
       \begin{tabular}{c}
-        $method10$\\
-        \SI{3.23900}{\micro\second}
+        $method10$                  \\
+        \SI{3.23900}{\micro\second} 
       \end{tabular}
     };
-
-
+    
+    
     % FIFTH LAYER
     \node[state,
       node distance=6.0em,
-      below of=METHOD_7B] (METHOD_10B) 
+    below of=METHOD_7B] (METHOD_10B) 
     {
       \begin{tabular}{c}
-        $method10$\\
-        \SI{1.58250}{\micro\second}
+        $method10$                  \\
+        \SI{1.58250}{\micro\second} 
       \end{tabular}
     };
-
-            
+    
+                
     % LINES
     \begin{scope}[every node/.style={fill=white,inner sep=0.25em,outer sep=0.0em}]
       \path
@@ -189,137 +189,137 @@ In a normalised call tree, each node only contains data related to that specific
   \centering
   \begin{tikzpicture}[->,>=stealth']
     \coordinate (START);
-
+    
     % FIRST LAYER
     \node[state,
       node distance=6.0em,
-      below of=START] (METHOD_1) 
+    below of=START] (METHOD_1) 
     {
       \begin{tabular}{c}
-        $method1$\\
-        \SI{75.0810}{\micro\second}
+        $method1$                   \\
+        \SI{75.0810}{\micro\second} 
       \end{tabular}
     };
-
-
+    
+    
     % SECOND LAYER
     \node[state,
       node distance=6.0em,
-      below of=METHOD_1] (METHOD_2) 
+    below of=METHOD_1] (METHOD_2) 
     {
       \begin{tabular}{c}
-        $method2$\\
-        \SI{52.8091}{\milli\second}
+        $method2$                   \\
+        \SI{52.8091}{\milli\second} 
       \end{tabular}
     };
-
-
+    
+    
     % THIRD LAYER
     \node[state,
       node distance=6.0em,
-      below of=METHOD_2] (METHOD_5) 
+    below of=METHOD_2] (METHOD_5) 
     {
       \begin{tabular}{c}
-        $method5$\\
-        \SI{19.3278}{\milli\second}
+        $method5$                   \\
+        \SI{19.3278}{\milli\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    left of=METHOD_5] (METHOD_4) 
+    {
+      \begin{tabular}{c}
+        $method4$                   \\
+        \SI{38.7951}{\milli\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    left of=METHOD_4] (METHOD_3) 
+    {
+      \begin{tabular}{c}
+        $method3$                   \\
+        \SI{38.7226}{\milli\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    right of=METHOD_5] (METHOD_6) 
+    {
+      \begin{tabular}{c}
+        $method6$                   \\
+        \SI{96.8115}{\milli\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    right of=METHOD_6] (METHOD_7) 
+    {
+      \begin{tabular}{c}
+        $method7$                   \\
+        \SI{15.9140}{\micro\second} 
       \end{tabular}
     };
     
-    \node[state,
-      node distance=6.75em,
-      left of=METHOD_5] (METHOD_4) 
-    {
-      \begin{tabular}{c}
-        $method4$\\
-        \SI{38.7951}{\milli\second}
-      \end{tabular}
-    };
     
-    \node[state,
-      node distance=6.75em,
-      left of=METHOD_4] (METHOD_3) 
-    {
-      \begin{tabular}{c}
-        $method3$\\
-        \SI{38.7226}{\milli\second}
-      \end{tabular}
-    };
-    
-    \node[state,
-      node distance=6.75em,
-      right of=METHOD_5] (METHOD_6) 
-    {
-      \begin{tabular}{c}
-        $method6$\\
-        \SI{96.8115}{\milli\second}
-      \end{tabular}
-    };
-    
-    \node[state,
-      node distance=6.75em,
-      right of=METHOD_6] (METHOD_7) 
-    {
-      \begin{tabular}{c}
-        $method7$\\
-        \SI{15.9140}{\micro\second}
-      \end{tabular}
-    };
-
-
     % FOURTH LAYER
     \node[state,
       node distance=6.0em,
-      below of=METHOD_5] (METHOD_7B) 
+    below of=METHOD_5] (METHOD_7B) 
     {
       \begin{tabular}{c}
-        $method7$\\
-        \SI{15.7387}{\micro\second}
+        $method7$                   \\
+        \SI{15.7387}{\micro\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    left of=METHOD_7B] (METHOD_8) 
+    {
+      \begin{tabular}{c}
+        $method8$                   \\
+        \SI{3.98597}{\milli\second} 
+      \end{tabular}
+    };
+        
+    \node[state,
+      node distance=6.75em,
+    right of=METHOD_7B] (METHOD_9) 
+    {
+      \begin{tabular}{c}
+        $method9$                   \\
+        \SI{3.39835}{\milli\second} 
       \end{tabular}
     };
     
-    \node[state,
-      node distance=6.75em,
-      left of=METHOD_7B] (METHOD_8) 
-    {
-      \begin{tabular}{c}
-        $method8$\\
-        \SI{3.98597}{\milli\second}
-      \end{tabular}
-    };
-    
-    \node[state,
-      node distance=6.75em,
-      right of=METHOD_7B] (METHOD_9) 
-    {
-      \begin{tabular}{c}
-        $method9$\\
-        \SI{3.39835}{\milli\second}
-      \end{tabular}
-    };
-
     \node[state,
       node distance=6.0em,
-      below of=METHOD_7] (METHOD_10) 
+    below of=METHOD_7] (METHOD_10) 
     {
       \begin{tabular}{c}
-        $method10$\\
-        \SI{3.23900}{\micro\second}
+        $method10$                  \\
+        \SI{3.23900}{\micro\second} 
       \end{tabular}
     };
-
-
+    
+    
     % FIFTH LAYER
     \node[state,
       node distance=6.0em,
-      below of=METHOD_7B] (METHOD_10B) 
+    below of=METHOD_7B] (METHOD_10B) 
     {
       \begin{tabular}{c}
-        $method10$\\
-        \SI{1.58250}{\micro\second}
+        $method10$                  \\
+        \SI{1.58250}{\micro\second} 
       \end{tabular}
     };
-
-            
+    
+                
     % LINES
     \begin{scope}[every node/.style={fill=white,inner sep=0.25em,outer sep=0.0em}]
       \path
@@ -349,42 +349,42 @@ An interpolated call tree represents a normalised tree as a function of $n$. Eac
   \centering
   \begin{tikzpicture}[->,>=stealth']
     \coordinate (START);
-
+    
     % FIRST LAYER
     \node[state,
       node distance=6.0em,
-      below of=START] (METHOD_1) 
+    below of=START] (METHOD_1) 
     {
       \begin{tabular}{c}
-        $method1$\\
-        $2n$
+        $method1$ \\
+        $2n$      
       \end{tabular}
     };
-
-
+    
+    
     % SECOND LAYER
     \node[state,
       node distance=6.0em,
       below of=METHOD_1,
-      xshift=-6.0em] (METHOD_2) 
+    xshift=-6.0em] (METHOD_2) 
     {
       \begin{tabular}{c}
-        $method2$\\
-        $n^3 + 0.5 \cdot n$
+        $method2$           \\
+        $n^3 + 0.5 \cdot n$ 
       \end{tabular}
     };
     \node[state,
       node distance=6.0em,
       below of=METHOD_1,
-      xshift=6.0em] (METHOD_3) 
+    xshift=6.0em] (METHOD_3) 
     {
       \begin{tabular}{c}
-        $method3$\\
-        $2.7 \cdot n \cdot log(n) + 4$
+        $method3$                      \\
+        $2.7 \cdot n \cdot log(n) + 4$ 
       \end{tabular}
     };
-
-            
+    
+                
     % LINES
     \begin{scope}[every node/.style={fill=white,inner sep=0.25em,outer sep=0.0em}]
       \path
@@ -417,6 +417,9 @@ Often there are methods that are called very frequently and are very quick (e.g.
 \subsection{Storage}
 The profiler needs to be able to handle and store a vast number of measurements without running out of memory and space on disk.
 
+\subsection{Concurrency}
+\label{sec:requirementanalysis:profiling:concurrency}
+The profiler must only support single-threaded algorithms.
 
 \noindent TODO by 25/09: more?
 

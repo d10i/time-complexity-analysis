@@ -1,7 +1,7 @@
 package tech.dario.timecomplexityanalysis.analyser;
 
-import tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm;
 import tech.dario.timecomplexityanalysis.sdk.domain.Algorithm;
+import tech.dario.timecomplexityanalysis.testalgorithms.custom.TestAlgorithm;
 
 public class TestAlgorithmAlgorithm implements Algorithm {
 
@@ -18,7 +18,8 @@ public class TestAlgorithmAlgorithm implements Algorithm {
   }
 
   @Override
-  public void run() {
-    this.testAlgorithm.doTask(n);
+  public Object run() {
+    testAlgorithm.doTask(n);
+    return 0;
   }
 }

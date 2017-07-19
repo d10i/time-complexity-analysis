@@ -23,11 +23,14 @@ public final class QuadraticFunctionFinder extends FittingFunctionFinder {
     try {
       LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
       double[] params = optimum.getPoint().toArray();
-      return Optional.of(new QuadraticFunction(params[0], params[1], params[2], optimum.getRMS()));
+      if(allParamsValid(params)) {
+        return Optional.of(new QuadraticFunction(params[0], params[1], params[2], optimum.getRMS()));
+      }
     } catch (Exception e) {
       LOGGER.warn("Unable to find fitting quadratic function", e);
-      return Optional.empty();
     }
+
+    return Optional.empty();
   }
 
   @Override
@@ -40,22 +43,22 @@ public final class QuadraticFunctionFinder extends FittingFunctionFinder {
     // Constraints:
     // 1. f(1) > 0:                   a + b + c > 0
     // 2. increasing-only for n >= 0: a > 0 and b >= 0
-    double a = Math.max(realVector.getEntry(0), Double.MIN_VALUE); // 2a
-    double b = Math.max(realVector.getEntry(1), 0.0d); // 2b
-    double c = Math.max(realVector.getEntry(2), Double.MIN_VALUE - a - b); // 1
-    realVector.setEntry(0, a);
-    realVector.setEntry(1, b);
-    realVector.setEntry(2, c);
+//    double a = Math.max(realVector.getEntry(0), Double.MIN_VALUE); // 2a
+//    double b = Math.max(realVector.getEntry(1), 0.0d); // 2b
+//    double c = Math.max(realVector.getEntry(2), Double.MIN_VALUE - a - b); // 1
+//    realVector.setEntry(0, a);
+//    realVector.setEntry(1, b);
+//    realVector.setEntry(2, c);
     return realVector;
   }
 
-  private class QuadraticFunction implements FittingFunction {
+  public static class QuadraticFunction implements FittingFunction {
     private final double a;
     private final double b;
     private final double c;
     private final double rms;
 
-    private QuadraticFunction(double a, double b, double c, double rms) {
+    public QuadraticFunction(double a, double b, double c, double rms) {
       this.a = a;
       this.b = b;
       this.c = c;
@@ -73,8 +76,13 @@ public final class QuadraticFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
+    public FittingFunctionType getFittingFunctionType() {
+      return FittingFunctionType.QUADRATIC;
+    }
+
+    @Override
     public String toString() {
-      return String.format("%.6f * n^2 + %.6f * n + %.6f", a, b, c);
+      return String.format("%.15e * n^2 + %.15e * n + %.15e", a, b, c);
     }
   }
 

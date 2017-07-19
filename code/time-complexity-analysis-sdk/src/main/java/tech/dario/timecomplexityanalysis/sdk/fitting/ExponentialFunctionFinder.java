@@ -23,11 +23,14 @@ public final class ExponentialFunctionFinder extends FittingFunctionFinder {
     try {
       LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
       double[] params = optimum.getPoint().toArray();
-      return Optional.of(new ExponentialFunction(params[0], params[1], params[2], optimum.getRMS()));
+      if(allParamsValid(params)) {
+        return Optional.of(new ExponentialFunction(params[0], params[1], params[2], optimum.getRMS()));
+      }
     } catch (Exception e) {
       LOGGER.warn("Unable to find fitting exponential function", e);
-      return Optional.empty();
     }
+
+    return Optional.empty();
   }
 
   @Override
@@ -49,23 +52,7 @@ public final class ExponentialFunctionFinder extends FittingFunctionFinder {
     return realVector;
   }
 
-//  @Override
-//  public RealVector validate(RealVector realVector) {
-//
-//    // Math.pow(a, x * b + c) + d;
-//    // f(x) = 0.00218014 e ^ (0.0147812 * x)
-//    // a = e
-//    // b = 0.0147812
-//    // c = ln(0.00218014) = −6.128366184
-//    // d = 0.0
-//
-//    // 1.  ok
-//    // 2a. ok
-//    // 2b. ok
-//    return realVector;
-//  }
-
-  private class ExponentialFunction implements FittingFunction {
+  public static class ExponentialFunction implements FittingFunction {
     private final double a;
     private final double b;
     private final double c;
@@ -89,8 +76,13 @@ public final class ExponentialFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
+    public FittingFunctionType getFittingFunctionType() {
+      return FittingFunctionType.EXPONENTIAL;
+    }
+
+    @Override
     public String toString() {
-      return String.format("%.6f * e ^ (n * %.6f) + %.6f", a, b, c);
+      return String.format("%.15e * e ^ (n * %.15e) + %.15e", a, b, c);
     }
   }
 

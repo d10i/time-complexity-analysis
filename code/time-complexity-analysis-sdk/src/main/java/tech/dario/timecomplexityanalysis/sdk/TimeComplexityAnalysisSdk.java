@@ -1,5 +1,6 @@
 package tech.dario.timecomplexityanalysis.sdk;
 
+import java.lang.ref.WeakReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.dario.timecomplexityanalysis.sdk.domain.*;
@@ -27,65 +28,51 @@ public class TimeComplexityAnalysisSdk {
     DECIMAL_FORMAT.setGroupingUsed(true);
   }
 
-  public void analyseAlgorithm(final Algorithm algorithm) {
-    analyseAlgorithm(algorithm, new DefaultProbe());
+  public InterpolatedTree analyseAlgorithm(final Algorithm algorithm) {
+    return analyseAlgorithm(algorithm, new DefaultProbe());
   }
 
-  public void analyseAlgorithm(final Algorithm algorithm, final Probe probe) {
+  public InterpolatedTree analyseAlgorithm(final Algorithm algorithm, final Probe probe) {
     long t0 = System.nanoTime();
-    runWarmUpRounds(algorithm, probe.getNumWarmUpRounds(), probe.buildNIterator());
+    runWarmUpRounds(algorithm, probe);
 
     final Map<Long, MergeableTree<Measurement>> treesGroupedByN = new HashMap<>();
     final Iterator<Long> iterator = probe.buildNIterator();
     while (iterator.hasNext()) {
       final long n = iterator.next();
-      final List<MergeableTree<Measurement>> recordedTrees = runRecordingRounds(n, algorithm, probe.getNumRecordingRounds());
-      final MergeableTree<MergeableList<Measurement>> sequencedTree = sequenceTrees(recordedTrees);
-      System.out.println("Sequenced:\n" + sequencedTree);
-      final MergeableTree<MergeableList<Measurement>> cleanedUpTree = cleanUpTree(sequencedTree, probe.getNumMaxOutliers());
-      System.out.println("Cleaned up:\n" + cleanedUpTree);
+      final Collection<MergeableTree<Measurement>> recordedTrees = runRecordingRounds(n, algorithm, probe.getNumRecordingRounds());
+      final MergeableTree<MergeableCollection<Measurement>> sequencedTree = sequenceTrees(recordedTrees);
+      LOGGER.debug("Sequenced:\n" + sequencedTree);
+      final MergeableTree<MergeableCollection<Measurement>> cleanedUpTree = cleanUpTree(sequencedTree, probe.getNumMaxOutliers());
+      LOGGER.debug("Cleaned up:\n" + cleanedUpTree);
       final MergeableTree<Measurement> averagedTree = averageTree(cleanedUpTree);
-      System.out.println("Averaged:\n" + averagedTree);
+      LOGGER.debug("Averaged:\n" + averagedTree);
+      printTotalTime(n, averagedTree);
       final MergeableTree<Measurement> normalisedTree = normaliseTree(averagedTree);
-      System.out.println("Normalised:\n" + normalisedTree);
+      LOGGER.debug("Normalised:\n" + normalisedTree);
       treesGroupedByN.put(n, normalisedTree);
     }
 
     final MergeableTree<AggregatedMeasurement> aggregatedTree = aggregateTrees(treesGroupedByN);
-    System.out.println("Aggregated:\n" + aggregatedTree);
-    final InterpolatedTree interpolatedTree = InterpolatedTree.fromAggregatedMeasurement(aggregatedTree);
-    System.out.println("Interpolated:\n" + interpolatedTree);
-//    System.out.println("n = 1: " + toMicroSeconds(interpolatedTree.calculate(1)));
-//    System.out.println("n = 2: " + toMicroSeconds(interpolatedTree.calculate(2)));
-//    System.out.println("n = 4: " + toMicroSeconds(interpolatedTree.calculate(4)));
-//    System.out.println("n = 8: " + toMicroSeconds(interpolatedTree.calculate(8)));
-//    System.out.println("n = 16: " + toMicroSeconds(interpolatedTree.calculate(16)));
-//    System.out.println("n = 32: " + toMicroSeconds(interpolatedTree.calculate(32)));
-//    System.out.println("n = 64: " + toMicroSeconds(interpolatedTree.calculate(64)));
-//    System.out.println("n = 128: " + toMicroSeconds(interpolatedTree.calculate(128)));
-//    System.out.println("n = 256: " + toMicroSeconds(interpolatedTree.calculate(256)));
-//    System.out.println("n = 512: " + toMicroSeconds(interpolatedTree.calculate(512)));
-//    System.out.println("n = 1024: " + toMicroSeconds(interpolatedTree.calculate(1024)));
-//    System.out.println("n = 2048: " + toMicroSeconds(interpolatedTree.calculate(2048)));
-//    System.out.println("n = 4096: " + toMicroSeconds(interpolatedTree.calculate(4096)));
-//    System.out.println("n = 8192: " + toMicroSeconds(interpolatedTree.calculate(8192)));
-//    System.out.println("n = 16384: " + toMicroSeconds(interpolatedTree.calculate(16384)));
-//    System.out.println("n = 32768: " + toMicroSeconds(interpolatedTree.calculate(32768)));
-//    System.out.println("n = 65536: " + toMicroSeconds(interpolatedTree.calculate(65536)));
-//    System.out.println("n = 131072: " + toMicroSeconds(interpolatedTree.calculate(131072)));
-    System.out.println(toMicroSeconds(interpolatedTree.calculate(1)));
-    System.out.println(toMicroSeconds(interpolatedTree.calculate(144)));
-    System.out.println(toMicroSeconds(interpolatedTree.calculate(286)));
-    System.out.println(toMicroSeconds(interpolatedTree.calculate(429)));
-    System.out.println(toMicroSeconds(interpolatedTree.calculate(572)));
-    System.out.println(toMicroSeconds(interpolatedTree.calculate(715)));
-    System.out.println(toMicroSeconds(interpolatedTree.calculate(857)));
-    System.out.println(toMicroSeconds(interpolatedTree.calculate(1000)));
-    System.out.println("Took: " + toMicroSeconds(System.nanoTime() - t0));
+    LOGGER.debug("Aggregated:\n" + aggregatedTree);
+    final InterpolatedTree interpolatedTree = InterpolatedTree.fromAggregatedMeasurement(aggregatedTree, probe);
+    LOGGER.debug("Interpolated:\n" + interpolatedTree);
+    LOGGER.debug("Took: " + (System.nanoTime() - t0) + " ns");
+    return interpolatedTree;
   }
 
-  private void runWarmUpRounds(final Algorithm algorithm, final int numWarmUpRounds, final Iterator<Long> nIterator) {
-    for (int i = 0; i < numWarmUpRounds; i++) {
+  private void printTotalTime(long n, MergeableTree<Measurement> averagedTree) {
+    try {
+      double totalTime = averagedTree.getRootNode().getChild("tech.dario.timecomplexityanalysis.testalgorithm.TestAlgorithm.doTask(long)").getData().getTotal();
+      LOGGER.debug(String.format("n=%d;%.1f", n, totalTime / 1000));
+    } catch (NullPointerException ignored) {
+
+    }
+  }
+
+  private void runWarmUpRounds(final Algorithm algorithm, final Probe probe) {
+    for (int i = 0; i < probe.getNumWarmUpRounds(); i++) {
+      Iterator<Long> nIterator = probe.buildNIterator();
       while (nIterator.hasNext()) {
         long n = nIterator.next();
         runAlgorithmWithN(algorithm, n);
@@ -93,8 +80,8 @@ public class TimeComplexityAnalysisSdk {
     }
   }
 
-  private List<MergeableTree<Measurement>> runRecordingRounds(final long n, final Algorithm algorithm, final int numRecordingRounds) {
-    List<MergeableTree<Measurement>> trees = new ArrayList<>(numRecordingRounds);
+  private Collection<MergeableTree<Measurement>> runRecordingRounds(final long n, final Algorithm algorithm, final int numRecordingRounds) {
+    Collection<MergeableTree<Measurement>> trees = new ArrayList<>(numRecordingRounds);
 
     for (int i = 0; i < numRecordingRounds; i++) {
       trees.add(runAlgorithmWithN(algorithm, n));
@@ -103,23 +90,23 @@ public class TimeComplexityAnalysisSdk {
     return trees;
   }
 
-  private MergeableTree<MergeableList<Measurement>> sequenceTrees(final List<MergeableTree<Measurement>> recordedTrees) {
+  private MergeableTree<MergeableCollection<Measurement>> sequenceTrees(final Collection<MergeableTree<Measurement>> recordedTrees) {
     return recordedTrees
         .stream()
         .reduce(new MergeableTree<>(),
-            (measurementListMergeableTree, measurementMergeableTree) -> {
-              final MergeableTree<MergeableList<Measurement>> measurementMergeableTree2 = measurementMergeableTree.map(MergeableTree::new, new MeasurementNodeSequencer<>());
-              return measurementListMergeableTree.mergeWith(measurementMergeableTree2);
+            (measurementCollectionMergeableTree, measurementMergeableTree) -> {
+              final MergeableTree<MergeableCollection<Measurement>> measurementMergeableTree2 = measurementMergeableTree.map(MergeableTree::new, new MeasurementNodeSequencer<>());
+              return measurementCollectionMergeableTree.mergeWith(measurementMergeableTree2);
             }, MergeableTree::mergeWith
         );
   }
 
-  private MergeableTree<MergeableList<Measurement>> cleanUpTree(final MergeableTree<MergeableList<Measurement>> sequencedTree, final int numMaxOutliers) {
-    return sequencedTree.map(MergeableTree::new, new MeasurementListNodeCleaner<>(numMaxOutliers));
+  private MergeableTree<MergeableCollection<Measurement>> cleanUpTree(final MergeableTree<MergeableCollection<Measurement>> sequencedTree, final int numMaxOutliers) {
+    return sequencedTree.map(MergeableTree::new, new MeasurementCollectionNodeCleaner<>(numMaxOutliers));
   }
 
-  private MergeableTree<Measurement> averageTree(final MergeableTree<MergeableList<Measurement>> cleanedUpTree) {
-    return cleanedUpTree.map(MergeableTree::new, new MeasurementListNodeAverager<>());
+  private MergeableTree<Measurement> averageTree(final MergeableTree<MergeableCollection<Measurement>> cleanedUpTree) {
+    return cleanedUpTree.map(MergeableTree::new, new MeasurementCollectionNodeAverager<>());
   }
 
   private MergeableTree<Measurement> normaliseTree(final MergeableTree<Measurement> averagedTree) {
@@ -143,13 +130,15 @@ public class TimeComplexityAnalysisSdk {
       algorithm.setup(n);
       final TimeRecorder timeRecorder = StaticTimeRecorderFactory.getTimeRecorder();
       timeRecorder.start();
+      //forceGarbageCollection();
       long t0 = System.nanoTime();
-      algorithm.run();
+      Object returnedValue = algorithm.run();
       long t1 = System.nanoTime();
-      System.out.println("n = " + n + ": " + toMicroSeconds(t1 - t0));
+      LOGGER.debug("n = " + n + ": " + (t1 - t0));
       MergeableTree<Measurement> tree = timeRecorder.stop();
       LOGGER.info("Done runAlgorithmWithN: algorithm: {}, n: {}", algorithm, n);
       return tree;
+      //return new MergeableTree<>();
     } catch (Exception e) {
       String message = String.format("Unexpected error analysing algorithm with n %d", n);
       LOGGER.error(message, e);
@@ -158,7 +147,12 @@ public class TimeComplexityAnalysisSdk {
     }
   }
 
-  private String toMicroSeconds(double nanoSeconds) {
-    return DECIMAL_FORMAT.format(nanoSeconds / 1000) + " μs";
+  private void forceGarbageCollection() {
+    Object obj = new Object();
+    WeakReference ref = new WeakReference<>(obj);
+    obj = null;
+    while (ref.get() != null) {
+      System.gc();
+    }
   }
 }

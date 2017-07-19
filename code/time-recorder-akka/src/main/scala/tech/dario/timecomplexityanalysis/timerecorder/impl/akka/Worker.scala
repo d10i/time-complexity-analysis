@@ -14,9 +14,14 @@ class Worker extends Actor with ActorLogging {
 
   override def receive = {
     case methodActions: MethodActions =>
-      queue = queue ++ methodActions.queue
+      insertionSort(methodActions.queue);
 
     case s: Save =>
       sender() ! queue.toList
+  }
+
+  private def insertionSort(otherQueue: Queue[MethodAction]) = {
+    val (olderQueue, newerQueue) = queue.span(ma => otherQueue.head.nanoTime < ma.nanoTime)
+    olderQueue ++ otherQueue ++ newerQueue
   }
 }

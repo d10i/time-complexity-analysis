@@ -1,16 +1,23 @@
 package tech.dario.timecomplexityanalysis.sdk.fitting;
 
+import java.util.Arrays;
 import org.apache.commons.math3.analysis.ParametricUnivariateFunction;
 import org.apache.commons.math3.fitting.AbstractCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoint;
+import org.apache.commons.math3.fitting.leastsquares.GaussNewtonOptimizer;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresBuilder;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresOptimizer;
 import org.apache.commons.math3.fitting.leastsquares.LeastSquaresProblem;
+import org.apache.commons.math3.fitting.leastsquares.LeastSquaresProblem.Evaluation;
+import org.apache.commons.math3.fitting.leastsquares.LevenbergMarquardtOptimizer;
 import org.apache.commons.math3.fitting.leastsquares.ParameterValidator;
 import org.apache.commons.math3.linear.DiagonalMatrix;
 
 import java.util.Collection;
 import java.util.Optional;
+import org.apache.commons.math3.optim.ConvergenceChecker;
+import org.apache.commons.math3.optim.SimpleVectorValueChecker;
+import org.apache.commons.math3.util.Precision;
 
 public abstract class FittingFunctionFinder implements ParameterValidator {
   private final CustomCurveFitter customCurveFitter;
@@ -27,6 +34,12 @@ public abstract class FittingFunctionFinder implements ParameterValidator {
     return customCurveFitter.getOptimizer().optimize(customCurveFitter.getProblem(points));
   }
 
+  protected boolean allParamsValid(double[] params) {
+    return Arrays
+        .stream(params)
+        .allMatch(d -> Double.isFinite(d) && !Double.isNaN(d));
+  }
+
   private class CustomCurveFitter extends AbstractCurveFitter {
     private final ParametricUnivariateFunction function;
     private final double[] initialGuess;
@@ -40,7 +53,7 @@ public abstract class FittingFunctionFinder implements ParameterValidator {
 
     @Override
     protected LeastSquaresOptimizer getOptimizer() {
-      return super.getOptimizer();
+      return new LevenbergMarquardtOptimizer(100, 1e-12, 1e-12, 1e-12, Precision.SAFE_MIN);
     }
 
     @Override

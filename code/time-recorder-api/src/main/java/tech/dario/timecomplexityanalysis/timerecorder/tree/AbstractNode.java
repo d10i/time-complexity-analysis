@@ -69,7 +69,7 @@ public abstract class AbstractNode<T, S extends AbstractNode<T, S>> {
     return data;
   }
 
-  protected void setData(T data) {
+  public void setData(T data) {
     this.data = data;
   }
 

@@ -23,11 +23,14 @@ public final class CubicFunctionFinder extends FittingFunctionFinder {
     try {
       LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
       double[] params = optimum.getPoint().toArray();
+      if(allParamsValid(params)) {
       return Optional.of(new CubicFunction(params[0], params[1], params[2], params[3], optimum.getRMS()));
+      }
     } catch (Exception e) {
       LOGGER.warn("Unable to find fitting cubic function", e);
-      return Optional.empty();
     }
+
+    return Optional.empty();
   }
 
   @Override
@@ -41,18 +44,18 @@ public final class CubicFunctionFinder extends FittingFunctionFinder {
     // 1. f(1) > 0:                   a + b + c + d > 0
     // 2. increasing-only for n >= 0: a > 0 and c >= (b ^ 2) / (3 * a)
     // 3. flexing point at n <= 0:    b >= 0
-    double a = Math.max(realVector.getEntry(0), Double.MIN_VALUE); // 2a
-    double b = Math.max(realVector.getEntry(1), 0.0d); // 3
-    double c = Math.max(realVector.getEntry(2), Math.pow(b, 2) / (3 * a)); // 2b
-    double d = Math.max(realVector.getEntry(3), Double.MIN_VALUE - a - b - c); // 1
-    realVector.setEntry(0, a);
-    realVector.setEntry(1, b);
-    realVector.setEntry(2, c);
-    realVector.setEntry(3, d);
+//    double a = Math.max(realVector.getEntry(0), Double.MIN_VALUE); // 2a
+//    double b = Math.max(realVector.getEntry(1), 0.0d); // 3
+//    double c = Math.max(realVector.getEntry(2), Math.pow(b, 2) / (3 * a)); // 2b
+//    double d = Math.max(realVector.getEntry(3), Double.MIN_VALUE - a - b - c); // 1
+//    realVector.setEntry(0, a);
+//    realVector.setEntry(1, b);
+//    realVector.setEntry(2, c);
+//    realVector.setEntry(3, d);
     return realVector;
   }
 
-  private class CubicFunction implements FittingFunction {
+  public static class CubicFunction implements FittingFunction {
     private final double a;
     private final double b;
     private final double c;
@@ -78,8 +81,13 @@ public final class CubicFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
+    public FittingFunctionType getFittingFunctionType() {
+      return FittingFunctionType.CUBIC;
+    }
+
+    @Override
     public String toString() {
-      return String.format("%.6f * n^3 + %.6f * n^2 + %.6f * n + %.6f", a, b, c, d);
+      return String.format("%.15e * n^3 + %.15e * n^2 + %.15e * n + %.15e", a, b, c, d);
     }
   }
 

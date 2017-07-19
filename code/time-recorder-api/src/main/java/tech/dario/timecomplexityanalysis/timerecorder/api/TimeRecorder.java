@@ -4,7 +4,7 @@ import tech.dario.timecomplexityanalysis.timerecorder.tree.MergeableTree;
 import tech.dario.timecomplexityanalysis.timerecorder.tree.Measurement;
 
 public interface TimeRecorder {
-  void start();
+  void start() throws Exception;
 
   void methodStarted(String methodLongName);
   void methodFinished(String methodLongName);

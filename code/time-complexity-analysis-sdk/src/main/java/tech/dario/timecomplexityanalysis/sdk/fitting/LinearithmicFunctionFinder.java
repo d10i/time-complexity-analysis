@@ -23,11 +23,14 @@ public final class LinearithmicFunctionFinder extends FittingFunctionFinder {
     try {
       LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
       double[] params = optimum.getPoint().toArray();
-      return Optional.of(new LinearithmicFunction(params[0], params[1], optimum.getRMS()));
+      if(allParamsValid(params)) {
+        return Optional.of(new LinearithmicFunction(params[0], params[1], optimum.getRMS()));
+      }
     } catch (Exception e) {
       LOGGER.warn("Unable to find fitting linearithmic function", e);
-      return Optional.empty();
     }
+
+    return Optional.empty();
   }
 
   @Override
@@ -47,12 +50,12 @@ public final class LinearithmicFunctionFinder extends FittingFunctionFinder {
     return realVector;
   }
 
-  private class LinearithmicFunction implements FittingFunction {
+  public static class LinearithmicFunction implements FittingFunction {
     private final double a;
     private final double b;
     private final double rms;
 
-    private LinearithmicFunction(double a, double b, double rms) {
+    public LinearithmicFunction(double a, double b, double rms) {
       this.a = a;
       this.b = b;
       this.rms = rms;
@@ -69,8 +72,13 @@ public final class LinearithmicFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
+    public FittingFunctionType getFittingFunctionType() {
+      return FittingFunctionType.LINEARITHMIC;
+    }
+
+    @Override
     public String toString() {
-      return String.format("%.6f * n * ln(n) + %.6f", a, b);
+      return String.format("%.15e * n * ln(n) + %.15e", a, b);
     }
   }
 

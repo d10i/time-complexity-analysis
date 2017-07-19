@@ -23,11 +23,14 @@ public final class LogarithmicFunctionFinder extends FittingFunctionFinder {
     try {
       LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
       double[] params = optimum.getPoint().toArray();
-      return Optional.of(new LogarithmicFunction(params[0], params[1], optimum.getRMS()));
+      if(allParamsValid(params)) {
+        return Optional.of(new LogarithmicFunction(params[0], params[1], optimum.getRMS()));
+      }
     } catch (Exception e) {
       LOGGER.warn("Unable to find fitting logarithmic function", e);
-      return Optional.empty();
     }
+
+    return Optional.empty();
   }
 
   @Override
@@ -47,12 +50,12 @@ public final class LogarithmicFunctionFinder extends FittingFunctionFinder {
     return realVector;
   }
 
-  private class LogarithmicFunction implements FittingFunction {
+  public static class LogarithmicFunction implements FittingFunction {
     private final double a;
     private final double b;
     private final double rms;
 
-    private LogarithmicFunction(double a, double b, double rms) {
+    public LogarithmicFunction(double a, double b, double rms) {
       this.a = a;
       this.b = b;
       this.rms = rms;
@@ -69,8 +72,13 @@ public final class LogarithmicFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
+    public FittingFunctionType getFittingFunctionType() {
+      return FittingFunctionType.LOGARITHMIC;
+    }
+
+    @Override
     public String toString() {
-      return String.format("%.6f * ln(n) + %.6f", a, b);
+      return String.format("%.15e * ln(n) + %.15e", a, b);
     }
   }
 

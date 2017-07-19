@@ -31,10 +31,6 @@ public class AkkaTimeRecorder implements TimeRecorder {
     this.bufferSize = bufferSize;
   }
 
-  public static void init() {
-    LOGGER.info("Initialising AkkaTimeRecorder");
-  }
-
   @Override
   public void start() {
     synchronized (AkkaTimeRecorder.class) {

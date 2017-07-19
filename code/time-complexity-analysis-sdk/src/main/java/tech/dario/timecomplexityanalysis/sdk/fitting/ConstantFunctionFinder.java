@@ -23,11 +23,14 @@ public final class ConstantFunctionFinder extends FittingFunctionFinder {
     try {
       LeastSquaresOptimizer.Optimum optimum = getOptimum(points);
       double[] params = optimum.getPoint().toArray();
-      return Optional.of(new ConstantFunction(params[0], optimum.getRMS()));
-    } catch(Exception e) {
+      if(allParamsValid(params)) {
+        return Optional.of(new ConstantFunction(params[0], optimum.getRMS()));
+      }
+    } catch (Exception e) {
       LOGGER.warn("Unable to find fitting constant function", e);
-      return Optional.empty();
     }
+
+    return Optional.empty();
   }
 
   @Override
@@ -44,11 +47,11 @@ public final class ConstantFunctionFinder extends FittingFunctionFinder {
     return realVector;
   }
 
-  private class ConstantFunction implements FittingFunction {
+  public static class ConstantFunction implements FittingFunction {
     private final double a;
     private final double rms;
 
-    private ConstantFunction(double a, double rms) {
+    public ConstantFunction(double a, double rms) {
       this.a = a;
       this.rms = rms;
     }
@@ -64,8 +67,41 @@ public final class ConstantFunctionFinder extends FittingFunctionFinder {
     }
 
     @Override
+    public FittingFunctionType getFittingFunctionType() {
+      return FittingFunctionType.CONSTANT;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof ConstantFunction)) {
+        return false;
+      }
+
+      ConstantFunction that = (ConstantFunction) o;
+
+      if (Double.compare(that.a, a) != 0) {
+        return false;
+      }
+      return Double.compare(that.rms, rms) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+      int result;
+      long temp;
+      temp = Double.doubleToLongBits(a);
+      result = (int) (temp ^ (temp >>> 32));
+      temp = Double.doubleToLongBits(rms);
+      result = 31 * result + (int) (temp ^ (temp >>> 32));
+      return result;
+    }
+
+    @Override
     public String toString() {
-      return String.format("%.6f", a);
+      return String.format("%.15e", a);
     }
   }
 

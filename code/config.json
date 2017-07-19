@@ -1,8 +1,11 @@
 {
   "whitelist": [
-    "^tech\\.dario\\.timecomplexityanalysis\\.testalgorithm\\."
+    "^tech\\.dario\\.timecomplexityanalysis\\.testalgorithms\\."
   ],
   "blacklist": [
+   "^tech\\.dario\\.timecomplexityanalysis\\.testalgorithms\\.sorting\\.IterativeMergeSort\\.no",
 
+   "^tech\\.dario\\.timecomplexityanalysis\\.testalgorithms\\.sorting\\.IterativeMergeSort\\.doMergeSort",
+   "^tech\\.dario\\.timecomplexityanalysis\\.testalgorithms\\.sorting\\.IterativeMergeSort\\.yes"
   ] 
 }
